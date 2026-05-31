@@ -1,0 +1,39 @@
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#78909c"/>
+      <stop offset="100%" stop-color="#a5b6bf"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="280" fill="url(#sky)"/>
+  <!-- 악취 구름 -->
+  <ellipse cx="160" cy="90" rx="80" ry="30" fill="#8d6e63" opacity="0.4"/>
+  <ellipse cx="230" cy="70" rx="70" ry="25" fill="#795548" opacity="0.35"/>
+  <ellipse cx="120" cy="65" rx="60" ry="22" fill="#9e9e9e" opacity="0.4"/>
+  <!-- 악취 물결 -->
+  <text x="100" y="100" font-family="sans-serif" font-size="18" fill="#8d6e63" opacity="0.5">〰</text>
+  <text x="180" y="85" font-family="sans-serif" font-size="16" fill="#8d6e63" opacity="0.4">〰</text>
+  <text x="250" y="95" font-family="sans-serif" font-size="18" fill="#8d6e63" opacity="0.5">〰</text>
+  <!-- 쓰레기 산 -->
+  <polygon points="0,280 0,190 80,140 160,170 220,130 300,155 400,120 400,280" fill="#5d4037"/>
+  <polygon points="0,280 0,210 60,170 130,195 200,160 270,180 340,155 400,165 400,280" fill="#6d4c41"/>
+  <!-- 쓰레기 디테일 -->
+  <rect x="40" y="200" width="18" height="12" rx="2" fill="#ef5350" opacity="0.7"/>
+  <rect x="70" y="185" width="14" height="10" rx="2" fill="#42a5f5" opacity="0.7"/>
+  <rect x="110" y="195" width="16" height="10" rx="2" fill="#ffd54f" opacity="0.7"/>
+  <rect x="155" y="175" width="20" height="12" rx="2" fill="#66bb6a" opacity="0.6"/>
+  <rect x="195" y="188" width="15" height="10" rx="2" fill="#ef5350" opacity="0.7"/>
+  <rect x="230" y="178" width="18" height="11" rx="2" fill="#ce93d8" opacity="0.7"/>
+  <rect x="275" y="170" width="16" height="10" rx="2" fill="#80cbc4" opacity="0.7"/>
+  <rect x="310" y="175" width="20" height="12" rx="2" fill="#ffd54f" opacity="0.7"/>
+  <!-- 갈매기들 -->
+  <path d="M80,120 Q88,113 96,120" fill="none" stroke="#37474f" stroke-width="2"/>
+  <path d="M130,105 Q138,98 146,105" fill="none" stroke="#37474f" stroke-width="2"/>
+  <path d="M280,110 Q288,103 296,110" fill="none" stroke="#37474f" stroke-width="2"/>
+  <!-- 오염수 -->
+  <path d="M0,260 Q100,252 200,260 Q300,268 400,255" fill="#558b2f" opacity="0.4" stroke="none"/>
+  <path d="M0,270 Q100,262 200,270 Q300,278 400,265" fill="#33691e" opacity="0.35" stroke="none"/>
+  <!-- 텍스트 -->
+  <text x="200" y="22" font-family="sans-serif" font-size="13" fill="#fff8e1" text-anchor="middle" font-weight="bold">거대한 쓰레기 산의 탄생</text>
+  <text x="200" y="38" font-family="sans-serif" font-size="10" fill="#ffe0b2" text-anchor="middle">눈에서 치워도 지하수는 오염됩니다</text>
+</svg>

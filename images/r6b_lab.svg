@@ -1,0 +1,74 @@
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8f5e9"/>
+      <stop offset="100%" stop-color="#c8e6c9"/>
+    </linearGradient>
+    <radialGradient id="aurora" cx="50%" cy="0%">
+      <stop offset="0%" stop-color="#a5d6a7" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#e8f5e9" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="280" fill="url(#sky)"/>
+  <ellipse cx="200" cy="0" rx="300" ry="120" fill="url(#aurora)"/>
+  <!-- 철새 떼 -->
+  <g stroke="#43a047" fill="none" stroke-width="1.8">
+    <path d="M60,45 Q66,39 72,45"/>
+    <path d="M78,38 Q84,32 90,38"/>
+    <path d="M96,44 Q102,38 108,44"/>
+    <path d="M50,55 Q56,49 62,55"/>
+    <path d="M114,35 Q120,29 126,35"/>
+    <path d="M130,48 Q136,42 142,48"/>
+    <path d="M148,40 Q154,34 160,40"/>
+  </g>
+  <!-- 연구원 건물 (유리/현대적) -->
+  <rect x="80" y="130" width="240" height="120" fill="#e8f5e9"/>
+  <!-- 유리 파사드 -->
+  <rect x="85" y="135" width="230" height="110" fill="#b2dfdb" opacity="0.6"/>
+  <!-- 유리 격자 -->
+  <g stroke="#80cbc4" stroke-width="1" opacity="0.7">
+    <line x1="120" y1="135" x2="120" y2="245"/>
+    <line x1="155" y1="135" x2="155" y2="245"/>
+    <line x1="190" y1="135" x2="190" y2="245"/>
+    <line x1="225" y1="135" x2="225" y2="245"/>
+    <line x1="260" y1="135" x2="260" y2="245"/>
+    <line x1="295" y1="135" x2="295" y2="245"/>
+    <line x1="85" y1="165" x2="315" y2="165"/>
+    <line x1="85" y1="195" x2="315" y2="195"/>
+    <line x1="85" y1="225" x2="315" y2="225"/>
+  </g>
+  <!-- 지붕 -->
+  <polygon points="65,130 200,85 335,130" fill="#4caf50"/>
+  <!-- 지붕 태양광 -->
+  <rect x="155" y="98" width="90" height="20" fill="#1976d2" opacity="0.7"/>
+  <!-- 입구 -->
+  <rect x="175" y="210" width="50" height="35" rx="2" fill="#26a69a"/>
+  <circle cx="222" cy="228" r="3" fill="#ffd54f"/>
+  <!-- 연구원 로고 (DNA 나선) -->
+  <text x="200" y="175" font-family="sans-serif" font-size="24" fill="#1b5e20" text-anchor="middle" opacity="0.9">🧬</text>
+  <!-- 나무들 -->
+  <g>
+    <rect x="53" y="185" width="6" height="45" fill="#6d4c41"/>
+    <circle cx="56" cy="178" r="20" fill="#388e3c"/>
+    <circle cx="44" cy="188" r="15" fill="#43a047"/>
+    <circle cx="68" cy="186" r="15" fill="#2e7d32"/>
+  </g>
+  <g>
+    <rect x="342" y="185" width="6" height="45" fill="#6d4c41"/>
+    <circle cx="345" cy="178" r="20" fill="#388e3c"/>
+    <circle cx="333" cy="188" r="15" fill="#43a047"/>
+    <circle cx="357" cy="186" r="15" fill="#2e7d32"/>
+  </g>
+  <!-- 작은 꽃밭 -->
+  <circle cx="100" cy="248" r="5" fill="#f48fb1"/>
+  <circle cx="114" cy="244" r="4" fill="#fff176"/>
+  <circle cx="128" cy="248" r="5" fill="#ce93d8"/>
+  <circle cx="275" cy="246" r="5" fill="#f48fb1"/>
+  <circle cx="289" cy="250" r="4" fill="#fff176"/>
+  <circle cx="303" cy="246" r="5" fill="#a5d6a7"/>
+  <!-- 풀밭 -->
+  <rect x="0" y="250" width="400" height="30" fill="#a5d6a7"/>
+  <!-- 텍스트 -->
+  <text x="200" y="22" font-family="sans-serif" font-size="13" fill="#1b5e20" text-anchor="middle" font-weight="bold">미래를 연구하는 생태 연구원</text>
+  <text x="200" y="38" font-family="sans-serif" font-size="10" fill="#2e7d32" text-anchor="middle">철새가 돌아오고 자연이 숨 쉬기 시작했습니다</text>
+</svg>

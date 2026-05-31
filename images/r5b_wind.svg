@@ -1,0 +1,53 @@
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0288d1"/>
+      <stop offset="100%" stop-color="#01579b"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#b3e5fc"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="280" fill="url(#sky)"/>
+  <!-- 수평선 구름 -->
+  <ellipse cx="60" cy="55" rx="48" ry="18" fill="white" opacity="0.85"/>
+  <ellipse cx="95" cy="48" rx="36" ry="14" fill="white" opacity="0.85"/>
+  <ellipse cx="320" cy="48" rx="42" ry="16" fill="white" opacity="0.75"/>
+  <ellipse cx="355" cy="54" rx="30" ry="12" fill="white" opacity="0.75"/>
+  <!-- 바다 -->
+  <rect x="0" y="180" width="400" height="100" fill="url(#sea)"/>
+  <!-- 파도 -->
+  <path d="M0,185 Q50,178 100,185 Q150,192 200,185 Q250,178 300,185 Q350,192 400,185" fill="none" stroke="#29b6f6" stroke-width="2.5" opacity="0.6"/>
+  <path d="M0,195 Q50,188 100,195 Q150,202 200,195 Q250,188 300,195 Q350,202 400,195" fill="none" stroke="#4fc3f7" stroke-width="2" opacity="0.5"/>
+  <path d="M0,210 Q60,203 120,210 Q180,217 240,210 Q300,203 360,210 Q380,212 400,210" fill="none" stroke="#29b6f6" stroke-width="1.5" opacity="0.4"/>
+  <!-- 해상 풍력 터빈 3개 -->
+  <!-- 터빈 1 (왼쪽) -->
+  <line x1="80" y1="180" x2="80" y2="80" stroke="#eceff1" stroke-width="5"/>
+  <circle cx="80" cy="80" r="5" fill="#cfd8dc"/>
+  <line x1="80" y1="80" x2="80" y2="38" stroke="#b0bec5" stroke-width="3" transform="rotate(0,80,80)"/>
+  <line x1="80" y1="80" x2="115" y2="110" stroke="#b0bec5" stroke-width="3"/>
+  <line x1="80" y1="80" x2="45" y2="110" stroke="#b0bec5" stroke-width="3"/>
+  <!-- 터빈 2 (중앙) -->
+  <line x1="200" y1="180" x2="200" y2="55" stroke="#eceff1" stroke-width="6"/>
+  <circle cx="200" cy="55" r="6" fill="#cfd8dc"/>
+  <line x1="200" y1="55" x2="200" y2="8" stroke="#b0bec5" stroke-width="3.5"/>
+  <line x1="200" y1="55" x2="241" y2="91" stroke="#b0bec5" stroke-width="3.5"/>
+  <line x1="200" y1="55" x2="159" y2="91" stroke="#b0bec5" stroke-width="3.5"/>
+  <!-- 터빈 3 (오른쪽) -->
+  <line x1="320" y1="180" x2="320" y2="75" stroke="#eceff1" stroke-width="5"/>
+  <circle cx="320" cy="75" r="5" fill="#cfd8dc"/>
+  <line x1="320" y1="75" x2="320" y2="33" stroke="#b0bec5" stroke-width="3"/>
+  <line x1="320" y1="75" x2="355" y2="105" stroke="#b0bec5" stroke-width="3"/>
+  <line x1="320" y1="75" x2="285" y2="105" stroke="#b0bec5" stroke-width="3"/>
+  <!-- 반짝이는 물빛 -->
+  <ellipse cx="100" cy="220" rx="18" ry="5" fill="#81d4fa" opacity="0.5"/>
+  <ellipse cx="220" cy="240" rx="22" ry="5" fill="#81d4fa" opacity="0.4"/>
+  <ellipse cx="340" cy="225" rx="16" ry="4" fill="#81d4fa" opacity="0.5"/>
+  <!-- 갈매기 -->
+  <path d="M150,120 Q158,113 166,120" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <path d="M240,130 Q248,123 256,130" fill="none" stroke="#546e7a" stroke-width="2"/>
+  <!-- 텍스트 -->
+  <text x="200" y="22" font-family="sans-serif" font-size="13" fill="#01579b" text-anchor="middle" font-weight="bold">바다 바람으로 마을을 밝히다</text>
+  <text x="200" y="38" font-family="sans-serif" font-size="10" fill="#0277bd" text-anchor="middle">끝없는 바람이 깨끗한 전기를 만듭니다</text>
+</svg>

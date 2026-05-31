@@ -1,0 +1,47 @@
+<svg viewBox="0 0 400 280" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#263238"/>
+      <stop offset="100%" stop-color="#4a4a4a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%">
+      <stop offset="0%" stop-color="#ff6f00" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#ff6f00" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="280" fill="url(#sky)"/>
+  <!-- 발전소 건물 -->
+  <rect x="80" y="160" width="240" height="100" fill="#37474f"/>
+  <rect x="100" y="145" width="60" height="115" fill="#263238"/>
+  <rect x="240" y="145" width="60" height="115" fill="#263238"/>
+  <!-- 거대 굴뚝 2개 -->
+  <rect x="115" y="60" width="30" height="95" fill="#455a64"/>
+  <rect x="255" y="50" width="32" height="100" fill="#455a64"/>
+  <!-- 굴뚝 줄무늬 -->
+  <rect x="115" y="75" width="30" height="6" fill="#f44336" opacity="0.7"/>
+  <rect x="115" y="100" width="30" height="6" fill="#f44336" opacity="0.7"/>
+  <rect x="115" y="125" width="30" height="6" fill="#f44336" opacity="0.7"/>
+  <rect x="255" y="65" width="32" height="6" fill="#f44336" opacity="0.7"/>
+  <rect x="255" y="90" width="32" height="6" fill="#f44336" opacity="0.7"/>
+  <rect x="255" y="115" width="32" height="6" fill="#f44336" opacity="0.7"/>
+  <!-- 연기 (굵고 어두운) -->
+  <ellipse cx="130" cy="48" rx="32" ry="22" fill="#616161" opacity="0.85"/>
+  <ellipse cx="115" cy="28" rx="38" ry="24" fill="#757575" opacity="0.75"/>
+  <ellipse cx="98" cy="10" rx="42" ry="22" fill="#616161" opacity="0.6"/>
+  <ellipse cx="140" cy="10" rx="35" ry="20" fill="#9e9e9e" opacity="0.5"/>
+  <ellipse cx="271" cy="38" rx="35" ry="22" fill="#616161" opacity="0.85"/>
+  <ellipse cx="256" cy="18" rx="40" ry="24" fill="#757575" opacity="0.75"/>
+  <ellipse cx="240" cy="2" rx="42" ry="20" fill="#616161" opacity="0.6"/>
+  <ellipse cx="285" cy="5" rx="35" ry="18" fill="#9e9e9e" opacity="0.5"/>
+  <!-- 오렌지 불빛 반사 -->
+  <ellipse cx="200" cy="200" rx="150" ry="60" fill="url(#glow)"/>
+  <!-- 창문 불빛 -->
+  <rect x="160" y="175" width="20" height="16" rx="2" fill="#ff6f00" opacity="0.7"/>
+  <rect x="190" y="175" width="20" height="16" rx="2" fill="#ffa000" opacity="0.7"/>
+  <rect x="220" y="175" width="20" height="16" rx="2" fill="#ff6f00" opacity="0.7"/>
+  <!-- 미세먼지 레이어 -->
+  <rect width="400" height="280" fill="#37474f" opacity="0.15"/>
+  <!-- 텍스트 -->
+  <text x="200" y="230" font-family="sans-serif" font-size="13" fill="#ffccbc" text-anchor="middle" font-weight="bold">숨막히는 미세먼지의 밤</text>
+  <text x="200" y="248" font-family="sans-serif" font-size="10" fill="#ff8a65" text-anchor="middle">전기는 켜졌지만 하늘이 사라졌습니다</text>
+</svg>

@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>작전명: 그린 플래닛</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #header {
+            font-size: 2.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        #stats-bar {
+            display: flex;
+            flex-direction: column; /* 세로 정렬 */
+            align-items: center; /* 가운데 정렬 */
+            background: #a5d6a7;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        
+        #year-stat {
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding-bottom: 10px;
+            color: #2e7d32;
+            justify-content: center; /* 가운데 정렬 추가 */
+        }
+
+        .stat {
+            background-color: #ffffff;
+            padding: 5px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 5px;
+            font-size: 1.2em;
+            position: relative;
+            transition: background-color 0.35s;
+        }
+        .stat.flash-up   { background-color: #c8f5c8; }
+        .stat.flash-down { background-color: #ffd6d6; }
+
+        /* 스탯 경고 단계 */
+        .stat.warn-caution {
+            background-color: #fff8e1;
+            border: 2px solid #ffc107;
+            animation: cautionPulse 2s ease-in-out infinite;
+        }
+        .stat.warn-danger {
+            background-color: #ffebee;
+            border: 2px solid #f44336;
+            animation: dangerPulse 1s ease-in-out infinite;
+        }
+        .stat.warn-good {
+            background-color: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+        @keyframes cautionPulse {
+            0%, 100% { box-shadow: 0 2px 4px rgba(255,193,7,0.3); }
+            50%       { box-shadow: 0 0 12px rgba(255,193,7,0.7); }
+        }
+        @keyframes dangerPulse {
+            0%, 100% { box-shadow: 0 2px 4px rgba(244,67,54,0.4); }
+            50%       { box-shadow: 0 0 16px rgba(244,67,54,0.9); }
+        }
+        /* 스탯 경고 아이콘 */
+        .stat-warn-icon {
+            font-size: 0.9rem;
+            margin-left: 3px;
+            animation: iconBounce 0.8s ease-in-out infinite;
+        }
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-3px); }
+        }
+        /* 인구 압박 게이지 */
+        .population-pressure-bar {
+            position: absolute;
+            bottom: 0; left: 0;
+            height: 3px;
+            border-radius: 0 0 10px 10px;
+            transition: width 0.6s ease, background-color 0.4s;
+        }
+        .stat-delta {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.95rem;
+            font-weight: bold;
+            pointer-events: none;
+            white-space: nowrap;
+            animation: deltaFloat 1.5s ease-out forwards;
+            z-index: 10;
+        }
+        @keyframes deltaFloat {
+            0%   { opacity: 1; transform: translateX(-50%) translateY(0px); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-30px); }
+        }
+
+        #game-content {
+            padding: 20px;
+            border: 2px dashed #a5d6a7;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        #game-content h2 {
+            font-size: 1.6rem;
+        }
+
+        #game-content p {
+            font-size: 1.3rem;
+            line-height: 1.7;
+            color: #2980b9; /* 설명글 파란색으로 변경 */
+        }
+        
+        /* 이미지와 비디오에 공통 스타일 적용 */
+        #media-container img, #media-container video {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            object-fit: cover;
+            aspect-ratio: 16 / 9;
+        }
+        
+        #media-container {
+             transition: opacity 0.5s ease-in-out;
+        }
+
+
+        #choices {
+            position: relative;
+            z-index: 2;
+        }
+
+        #choices button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 12px;
+            background-color: #4caf50;
+            color: white;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        #choices input[type="text"] {
+             width: 80%; 
+             padding: 12px; 
+             border-radius: 8px; 
+             border: 2px solid #a5d6a7; 
+             font-family: 'Jua', sans-serif; 
+             font-size: 1.1em;
+             margin-bottom: 10px;
+             text-align: center;
+        }
+        
+        #choices button.next-year, #modal-buttons .next-year-button {
+            background-color: #ff9800;
+        }
+        #choices button.next-year:hover, #modal-buttons .next-year-button:hover {
+            background-color: #f57c00;
+        }
+
+        #choices button:hover {
+            background-color: #388e3c;
+            transform: translateY(-2px);
+        }
+        
+        /* 선택지 버튼: 색으로 정답 힌트 없음 - 모두 동일 스타일 */
+        #choices button.choice-btn {
+            background-color: #546e7a;
+        }
+        #choices button.choice-btn:hover {
+            background-color: #37474f;
+        }
+        /* 힌트 태그 */
+        .choice-hint {
+            display: block;
+            font-size: 0.78rem;
+            opacity: 0.82;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        #modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 20px;
+            text-align: center;
+            animation: fadeIn 0.5s;
+            font-size: 1.2rem;
+        }
+        
+        #modal-content h2 {
+            font-size: 2rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #modal-buttons button {
+             display: inline-block;
+             padding: 12px 25px;
+             margin-top: 20px;
+             border: none;
+             border-radius: 10px;
+             color: white;
+             font-family: 'Jua', sans-serif;
+             font-size: 1em;
+             cursor: pointer;
+        }
+        
+        #modal-buttons .restart-button {
+            background-color: #f44336;
+        }
+
+        /* ===== 미니게임 공통 ===== */
+        #minigame-overlay {
+            display: none;
+            position: fixed;
+            z-index: 20;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            justify-content: center;
+            align-items: center;
+        }
+        #minigame-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 24px 20px 20px;
+            width: 92%;
+            max-width: 560px;
+            text-align: center;
+            font-family: 'Jua', sans-serif;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        #minigame-box h2 { font-size: 1.6rem; margin: 0 0 6px; color: #2e7d32; }
+        #minigame-box p  { font-size: 1rem; color: #555; margin: 0 0 12px; }
+        .mg-timer-bar-wrap {
+            background: #e0e0e0;
+            border-radius: 8px;
+            height: 14px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+        .mg-timer-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 8px;
+            transition: width 0.2s linear, background 0.4s;
+        }
+        .mg-score-row {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .mg-result-box {
+            background: #f1f8e9;
+            border-radius: 14px;
+            padding: 16px;
+            margin: 10px 0;
+            font-size: 1.15rem;
+            line-height: 1.9;
+        }
+        .mg-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            background: #4caf50;
+            color: #fff;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .mg-btn:hover { background: #388e3c; transform: translateY(-2px); }
+
+        /* ===== 강 정화 게임 ===== */
+        #river-canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(180deg, #b3e5fc 0%, #4fc3f7 40%, #0288d1 100%);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: crosshair;
+            margin-bottom: 8px;
+            user-select: none;
+        }
+        .trash-item {
+            position: absolute;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+            animation: floatDown 0.3s ease-out;
+        }
+        .trash-item:hover { transform: scale(1.2); }
+        @keyframes floatDown {
+            from { opacity: 0; transform: scale(0.5); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+        .splash {
+            position: absolute;
+            font-size: 1.6rem;
+            pointer-events: none;
+            animation: splashAnim 0.5s ease-out forwards;
+        }
+        @keyframes splashAnim {
+            0%   { opacity: 1; transform: scale(0.8); }
+            100% { opacity: 0; transform: scale(1.8) translateY(-20px); }
+        }
+
+        /* ===== 나무 심기 클리커 ===== */
+        #forest-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: linear-gradient(180deg, #a5d6a7 0%, #66bb6a 100%);
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 8px;
+            min-height: 160px;
+        }
+        .forest-cell {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            background: #795548;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s;
+            user-select: none;
+        }
+        .forest-cell:hover { transform: scale(1.15); }
+        .forest-cell.planted { background: #2e7d32; cursor: default; }
+        .forest-cell.planted:hover { transform: none; }
+        @keyframes growTree {
+            0%   { transform: scale(0); }
+            60%  { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .tree-grow { animation: growTree 0.35s ease-out; }
+
+        /* ===== 선택 피드백 플래시 오버레이 ===== */
+        #feedback-flash {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+        #feedback-flash.good {
+            background: radial-gradient(ellipse at center, rgba(76,175,80,0.35) 0%, rgba(76,175,80,0) 70%);
+            animation: flashGood 0.7s ease-out forwards;
+        }
+        #feedback-flash.bad {
+            background: radial-gradient(ellipse at center, rgba(229,57,53,0.4) 0%, rgba(229,57,53,0) 70%);
+            animation: flashBad 0.8s ease-out forwards;
+        }
+        @keyframes flashGood {
+            0%   { opacity: 0; }
+            20%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @keyframes flashBad {
+            0%   { opacity: 0; transform: translateX(0); }
+            15%  { opacity: 1; transform: translateX(-6px); }
+            30%  { transform: translateX(6px); }
+            45%  { transform: translateX(-4px); }
+            60%  { opacity: 1; transform: translateX(4px); }
+            100% { opacity: 0; transform: translateX(0); }
+        }
+
+        /* ===== 동적 배경 ===== */
+        body {
+            transition: background-color 1.2s ease;
+        }
+
+        /* ===== 연도 전환 애니메이션 ===== */
+        #year-transition-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #1a237e;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #year-transition-overlay.active {
+            display: flex;
+            animation: yearFadeInOut 1.6s ease forwards;
+        }
+        @keyframes yearFadeInOut {
+            0%   { opacity: 0; }
+            20%  { opacity: 1; }
+            70%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        #year-transition-text {
+            font-family: 'Jua', sans-serif;
+            font-size: 3.5rem;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(255,255,255,0.6);
+            animation: yearTextPop 1.6s ease forwards;
+        }
+        #year-transition-sub {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 8px;
+        }
+        @keyframes yearTextPop {
+            0%   { transform: scale(0.4); opacity: 0; }
+            30%  { transform: scale(1.1); opacity: 1; }
+            60%  { transform: scale(1); }
+            80%  { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+
+        /* ===== 게임 컨텐츠 페이드 ===== */
+        #game-content {
+            transition: opacity 0.35s ease;
+        }
+        #game-content.fading {
+            opacity: 0;
+        }
+
+        /* ===== 사운드 토글 버튼 ===== */
+        #sound-toggle {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            z-index: 200;
+            background: rgba(255,255,255,0.92);
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            transition: transform 0.15s, background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #sound-toggle:hover { transform: scale(1.12); background: #fff; }
+
+        /* ===== 에코 렌즈 버튼 ===== */
+        #eco-lens-btn {
+            display: none;
+            position: relative;
+            margin: 8px auto 0;
+            padding: 9px 22px;
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: #a5d6f7;
+            border: 2px solid #5c6bc0;
+            border-radius: 24px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(92,107,192,0.4);
+            transition: all 0.2s;
+        }
+        #eco-lens-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #283593, #3949ab);
+            box-shadow: 0 0 20px rgba(92,107,192,0.7);
+            transform: translateY(-1px);
+        }
+        #eco-lens-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        #eco-lens-badge {
+            display: inline-block;
+            background: #5c6bc0;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            padding: 1px 8px;
+            margin-left: 6px;
+        }
+
+        /* ===== 에코 렌즈 오버레이 ===== */
+        #ecolens-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: rgba(0,0,8,0.92);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #ecolens-overlay.active { display: flex; }
+
+        /* 안경 프레임 SVG 마스크 영역 */
+        #ecolens-glasses {
+            position: relative;
+            width: min(92vw, 660px);
+            overflow: visible;
+        }
+        #ecolens-glasses svg.glasses-frame {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 18px #5c6bc0) drop-shadow(0 0 40px #1a237e);
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 두 렌즈 영역 (안경 안쪽) */
+        #ecolens-lenses {
+            position: absolute;
+            top: 12%;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 76%;
+            gap: 4%;
+            padding: 0 6%;
+            z-index: 1;
+            overflow: visible;
+        }
+        .lens-pane {
+            flex: 1;
+            height: 100%;
+            border-radius: 50% 50% 48% 48%;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1),
+                        box-shadow 0.4s ease,
+                        z-index 0s;
+            z-index: 1;
+        }
+        .lens-pane:hover {
+            transform: scale(1.55);
+            z-index: 10;
+            box-shadow: 0 0 40px rgba(92,107,192,0.9), 0 0 80px rgba(26,35,126,0.5);
+        }
+        .lens-pane img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: saturate(0.5) brightness(0.7) blur(2px);
+            transform: scale(1.08);
+            transition: filter 0.4s ease, transform 0.4s ease;
+            animation: lensReveal 1.2s ease-out forwards;
+        }
+        @keyframes lensReveal {
+            0%   { filter: saturate(0) brightness(0.3) blur(14px); transform: scale(1.2); }
+            100% { filter: saturate(0.5) brightness(0.7) blur(2px); transform: scale(1.08); }
+        }
+        .lens-pane:hover img {
+            filter: saturate(1.1) brightness(1.05) blur(0px);
+            transform: scale(1.0);
+        }
+        .lens-label {
+            position: absolute;
+            bottom: 8%;
+            left: 0; right: 0;
+            text-align: center;
+            color: #e3f2fd;
+            font-family: 'Jua', sans-serif;
+            font-size: clamp(0.65rem, 2vw, 0.88rem);
+            text-shadow: 0 1px 6px #000, 0 0 12px #1a237e;
+            padding: 0 6px;
+            pointer-events: none;
+            line-height: 1.3;
+        }
+        .lens-choice-label {
+            position: absolute;
+            top: 8%;
+            left: 0; right: 0;
+            text-align: center;
+            color: #90caf9;
+            font-family: 'Jua', sans-serif;
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+            text-shadow: 0 0 8px #1a237e;
+            pointer-events: none;
+        }
+
+        /* 렌즈 스캔라인 효과 */
+        .lens-pane::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 3px,
+                rgba(0,20,60,0.12) 3px,
+                rgba(0,20,60,0.12) 4px
+            );
+            pointer-events: none;
+            z-index: 2;
+            border-radius: inherit;
+        }
+        /* 렌즈 테두리 글로우 */
+        .lens-pane::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: inherit;
+            border: 2px solid rgba(92,107,192,0.6);
+            box-shadow: inset 0 0 20px rgba(26,35,126,0.5);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* 안경 위 텍스트 */
+        #ecolens-title {
+            font-family: 'Jua', sans-serif;
+            color: #90caf9;
+            font-size: clamp(0.85rem, 3vw, 1.1rem);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px #3949ab;
+            text-align: center;
+        }
+        #ecolens-subtitle {
+            color: rgba(144,202,249,0.6);
+            font-family: 'Jua', sans-serif;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        #ecolens-close {
+            margin-top: 18px;
+            padding: 10px 30px;
+            background: transparent;
+            border: 2px solid #5c6bc0;
+            border-radius: 20px;
+            color: #90caf9;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #ecolens-close:hover { background: rgba(92,107,192,0.2); }
+
+        /* 에코렌즈 사용 시 화면 스캔 애니메이션 */
+        #ecolens-scanline {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 290;
+            pointer-events: none;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(92,107,192,0.15) 48%,
+                rgba(144,202,249,0.25) 50%,
+                rgba(92,107,192,0.15) 52%,
+                transparent 100%);
+            background-size: 100% 200%;
+            animation: scanDown 0.6s ease-in forwards;
+        }
+        @keyframes scanDown {
+            0%   { background-position: 0 -100%; opacity: 0.8; }
+            100% { background-position: 0 200%;  opacity: 0; }
+        }
+
+        /* ===== 타임캡슐 오프닝 씬 ===== */
+        #capsule-scene {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: #000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #capsule-scene.active { display: flex; }
+
+        #capsule-scene svg#capsule-svg {
+            width: min(90vw, 480px);
+            height: auto;
+        }
+
+        /* 배경 별 */
+        #capsule-scene .star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: twinkle var(--d, 2s) ease-in-out infinite var(--delay, 0s);
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50%       { opacity: 1;   transform: scale(1.4); }
+        }
+
+        /* 빛 폭발 */
+        #capsule-burst {
+            position: absolute;
+            width: 0; height: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff9c4 0%, #ffe082 30%, rgba(255,224,130,0) 70%);
+            transform: translate(-50%, -50%);
+            top: 50%; left: 50%;
+            pointer-events: none;
+            opacity: 0;
+        }
+        #capsule-burst.burst {
+            animation: burstAnim 0.8s ease-out forwards;
+        }
+        @keyframes burstAnim {
+            0%   { width: 0;     height: 0;     opacity: 1; }
+            60%  { width: 600px; height: 600px; opacity: 0.8; }
+            100% { width: 900px; height: 900px; opacity: 0; }
+        }
+
+        /* 에코렌즈 등장 */
+        #capsule-lens-reveal {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #capsule-lens-reveal.reveal {
+            animation: lensAppear 1.2s ease-out 0.5s forwards;
+        }
+        @keyframes lensAppear {
+            0%   { opacity: 0; transform: translateY(40px) scale(0.6); filter: blur(10px); }
+            60%  { opacity: 1; transform: translateY(-8px) scale(1.08); filter: blur(0); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        #capsule-skip {
+            position: absolute;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.6);
+            font-family: 'Jua', sans-serif;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #capsule-skip:hover { background: rgba(255,255,255,0.22); color: white; }
+
+        #capsule-msg {
+            color: rgba(255,255,255,0);
+            font-family: 'Jua', sans-serif;
+            font-size: clamp(1rem, 3vw, 1.3rem);
+            margin-top: 20px;
+            text-shadow: 0 0 20px #ffe082;
+            text-align: center;
+            min-height: 2em;
+            transition: color 0.6s;
+            letter-spacing: 1px;
+        }
+        #capsule-msg.visible { color: rgba(255,255,255,0.95); }
+
+        #capsule-continue {
+            display: none;
+            margin-top: 24px;
+            padding: 12px 36px;
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            border: none;
+            border-radius: 24px;
+            color: #fff;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(76,175,80,0.5);
+            animation: continuePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes continuePulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(76,175,80,0.5); }
+            50%       { box-shadow: 0 0 40px rgba(76,175,80,0.9); }
+        }
+
+        /* ===== 긴급 미션 알림 ===== */
+        #mission-alert-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: rgba(0,0,0,0.82);
+            justify-content: center;
+            align-items: center;
+        }
+        #mission-alert-overlay.active { display: flex; }
+
+        #mission-alert-box {
+            background: #0a0a1a;
+            border: 2px solid #f44336;
+            border-radius: 18px;
+            padding: 32px 28px 24px;
+            width: min(88vw, 460px);
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 40px rgba(244,67,54,0.5), 0 0 80px rgba(244,67,54,0.2);
+            animation: alertAppear 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        @keyframes alertAppear {
+            0%   { transform: scale(0.7); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
+        /* 상단 경고등 줄 */
+        #mission-alert-box::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: 10%; right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #f44336, #ff1744, #f44336, transparent);
+            animation: alertBlink 0.8s ease-in-out infinite;
+        }
+        @keyframes alertBlink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0.3; }
+        }
+
+        #mission-alert-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 8px;
+            animation: iconShake 0.5s ease-in-out infinite;
+        }
+        @keyframes iconShake {
+            0%, 100% { transform: rotate(-4deg); }
+            50%       { transform: rotate(4deg); }
+        }
+
+        #mission-alert-title {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.5rem;
+            color: #f44336;
+            margin-bottom: 6px;
+            text-shadow: 0 0 12px rgba(244,67,54,0.7);
+            letter-spacing: 1px;
+        }
+        #mission-alert-subtitle {
+            font-family: 'Jua', sans-serif;
+            font-size: 0.95rem;
+            color: #ef9a9a;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        #mission-alert-desc {
+            background: rgba(244,67,54,0.08);
+            border: 1px solid rgba(244,67,54,0.25);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'Jua', sans-serif;
+            font-size: 1rem;
+            color: #fff;
+            margin-bottom: 22px;
+            line-height: 1.7;
+        }
+        .mission-alert-btns {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+        .mission-btn-accept {
+            flex: 1;
+            padding: 12px 0;
+            background: linear-gradient(135deg, #c62828, #f44336);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 0 14px rgba(244,67,54,0.5);
+            transition: all 0.2s;
+        }
+        .mission-btn-accept:hover {
+            background: linear-gradient(135deg, #d32f2f, #ef5350);
+            transform: translateY(-2px);
+            box-shadow: 0 0 24px rgba(244,67,54,0.7);
+        }
+        .mission-btn-skip {
+            flex: 1;
+            padding: 12px 0;
+            background: transparent;
+            border: 2px solid #546e7a;
+            border-radius: 12px;
+            color: #90a4ae;
+            font-family: 'Jua', sans-serif;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mission-btn-skip:hover {
+            border-color: #78909c;
+            color: #cfd8dc;
+        }
+
+        /* ===== 떠오르는 인트로 멘트 ===== */
+        #intro-float-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 600;
+            background: #000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #intro-float-overlay.active { display: flex; }
+
+        /* 별 배경 */
+        #intro-float-overlay .float-star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: floatStarTwinkle var(--d,2s) ease-in-out infinite var(--delay,0s);
+        }
+        @keyframes floatStarTwinkle {
+            0%,100% { opacity:0.15; }
+            50%      { opacity:0.8; }
+        }
+
+        .float-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) translateY(50px);
+            opacity: 0;
+            font-family: 'Jua', sans-serif;
+            text-align: center;
+            white-space: nowrap;
+            pointer-events: none;
+            transition: none;
+            will-change: transform, opacity;
+        }
+        .float-line.show {
+            animation: floatUp 1.4s cubic-bezier(0.22,1,0.36,1) forwards;
+        }
+        .float-line.hide {
+            animation: floatFade 0.6s ease-in forwards;
+        }
+        @keyframes floatUp {
+            0%   { opacity:0; transform: translateX(-50%) translateY(50px); }
+            60%  { opacity:1; transform: translateX(-50%) translateY(-6px); }
+            100% { opacity:1; transform: translateX(-50%) translateY(0px); }
+        }
+        @keyframes floatFade {
+            0%   { opacity:1; transform: translateX(-50%) translateY(0px); }
+            100% { opacity:0; transform: translateX(-50%) translateY(0px); }
+        }
+
+        /* 건너뛰기 */
+        #intro-float-skip {
+            position: absolute;
+            bottom: 28px;
+            right: 28px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: rgba(255,255,255,0.5);
+            font-family: 'Jua', sans-serif;
+            font-size: 0.85rem;
+            padding: 6px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        #intro-float-skip:hover {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<button id="sound-toggle" title="사운드 켜기/끄기">🔊</button>
+
+<div id="game-container">
+    <h1 id="header">작전명: 그린 플래닛</h1>
+    
+    <div id="stats-bar" style="display: none;">
+        <div id="year-stat" class="stat-row">
+            <span id="year"></span>
+        </div>
+        <div class="stat-row">
+            <div class="stat" id="stat-capital">💰 돈: <span id="capital">1000</span></div>
+            <div class="stat" id="stat-nature">🌳 자연: <span id="nature">50</span></div>
+            <div class="stat" id="stat-population">👨‍👩‍👧‍👦 인구: <span id="population">100</span>
+                <div class="population-pressure-bar" id="pop-pressure-bar" style="width:0%;background:#4caf50;"></div>
+            </div>
+            <div class="stat" id="stat-pollution">💨 오염: <span id="pollution">10</span></div>
+        </div>
+    </div>
+
+    <div id="game-content">
+        <h2 id="scenario-title">🌍 2026년, 지구 어딘가에서...</h2>
+        <div id="media-container">
+            <video autoplay muted loop playsinline src="videos/intro_timecapsule.mp4"></video>
+        </div>
+        <p id="scenario-description">평화로운 어느 날, 당신 앞에<br>2050년 미래에서 온 타임캡슐이 나타났다!</p>
+    </div>
+
+    <div id="choices">
+        <!-- 선택지는 JavaScript로 동적으로 생성됩니다 -->
+    </div>
+    <div style="text-align:center;">
+        <button id="eco-lens-btn">🔭 에코 렌즈로 미래 보기 <span id="eco-lens-badge">3</span></button>
+    </div>
+</div>
+
+<!-- 선택 피드백 플래시 -->
+<div id="feedback-flash"></div>
+
+<!-- 연도 전환 오버레이 -->
+<div id="year-transition-overlay">
+    <div id="year-transition-text"></div>
+    <div id="year-transition-sub"></div>
+</div>
+
+<div id="modal">
+    <div id="modal-content">
+        <h2 id="modal-title"></h2>
+        <div id="modal-text"></div>
+        <div id="modal-buttons"></div>
+    </div>
+</div>
+
+<!-- 떠오르는 인트로 멘트 오버레이 -->
+<div id="intro-float-overlay">
+    <button id="intro-float-skip" onclick="skipIntroFloat()">건너뛰기 ▶</button>
+</div>
+
+<!-- 긴급 미션 알림 오버레이 -->
+<div id="mission-alert-overlay">
+    <div id="mission-alert-box">
+        <span id="mission-alert-icon">🚨</span>
+        <div id="mission-alert-title">⚠ 긴급 미션 발생 ⚠</div>
+        <div id="mission-alert-subtitle" id="mission-alert-subtitle"></div>
+        <div id="mission-alert-desc"></div>
+        <div class="mission-alert-btns">
+            <button class="mission-btn-accept" id="mission-btn-accept">✅ 미션 수락</button>
+            <button class="mission-btn-skip"   id="mission-btn-skip">⏭ 건너뛰기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 타임캡슐 오프닝 씬 -->
+<div id="capsule-scene">
+    <!-- 별 배경 (JS로 생성) -->
+    <div id="capsule-burst"></div>
+
+    <!-- 에코 렌즈 등장 이미지 -->
+    <div id="capsule-lens-reveal">
+        <svg width="180" height="100" viewBox="0 0 360 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- 렌즈 글로우 -->
+            <ellipse cx="100" cy="100" rx="90" ry="70" fill="#1a237e" opacity="0.5"/>
+            <ellipse cx="260" cy="100" rx="90" ry="70" fill="#1a237e" opacity="0.5"/>
+            <!-- 왼쪽 렌즈 -->
+            <ellipse cx="100" cy="100" rx="88" ry="68" fill="#0d1b4b" stroke="#5c6bc0" stroke-width="5"/>
+            <ellipse cx="100" cy="100" rx="88" ry="68" fill="url(#lensGrad)" opacity="0.7"/>
+            <!-- 오른쪽 렌즈 -->
+            <ellipse cx="260" cy="100" rx="88" ry="68" fill="#0d1b4b" stroke="#5c6bc0" stroke-width="5"/>
+            <ellipse cx="260" cy="100" rx="88" ry="68" fill="url(#lensGrad2)" opacity="0.7"/>
+            <!-- 코걸이 -->
+            <path d="M188,95 Q180,82 172,95" fill="none" stroke="#7986cb" stroke-width="4" stroke-linecap="round"/>
+            <!-- 다리 -->
+            <path d="M12,75 Q2,72 0,100" fill="none" stroke="#5c6bc0" stroke-width="4" stroke-linecap="round"/>
+            <path d="M348,75 Q358,72 360,100" fill="none" stroke="#5c6bc0" stroke-width="4" stroke-linecap="round"/>
+            <!-- 렌즈 내부 빛 패턴 -->
+            <circle cx="100" cy="100" r="30" fill="none" stroke="#3949ab" stroke-width="1.5" opacity="0.6"/>
+            <circle cx="100" cy="100" r="55" fill="none" stroke="#3949ab" stroke-width="1" opacity="0.4"/>
+            <circle cx="260" cy="100" r="30" fill="none" stroke="#3949ab" stroke-width="1.5" opacity="0.6"/>
+            <circle cx="260" cy="100" r="55" fill="none" stroke="#3949ab" stroke-width="1" opacity="0.4"/>
+            <!-- 중앙 빛점 -->
+            <circle cx="75" cy="78" r="6" fill="#90caf9" opacity="0.8"/>
+            <circle cx="235" cy="78" r="6" fill="#90caf9" opacity="0.8"/>
+            <defs>
+                <radialGradient id="lensGrad" cx="35%" cy="35%">
+                    <stop offset="0%" stop-color="#7986cb" stop-opacity="0.7"/>
+                    <stop offset="100%" stop-color="#1a237e" stop-opacity="0.1"/>
+                </radialGradient>
+                <radialGradient id="lensGrad2" cx="35%" cy="35%">
+                    <stop offset="0%" stop-color="#7986cb" stop-opacity="0.7"/>
+                    <stop offset="100%" stop-color="#1a237e" stop-opacity="0.1"/>
+                </radialGradient>
+            </defs>
+        </svg>
+    </div>
+
+    <!-- 캡슐 SVG 애니메이션 -->
+    <svg id="capsule-svg" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="capsuleBody" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#b0bec5"/>
+                <stop offset="100%" stop-color="#607d8b"/>
+            </linearGradient>
+            <linearGradient id="capsuleTop" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#cfd8dc"/>
+                <stop offset="100%" stop-color="#90a4ae"/>
+            </linearGradient>
+            <linearGradient id="capsuleGlow" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0"/>
+                <stop offset="40%" stop-color="#ffffff" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+            </linearGradient>
+            <radialGradient id="innerGlow" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#ffe082" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#ff8f00" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="metalShine">
+                <feGaussianBlur stdDeviation="1" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+
+        <!-- 캡슐 몸통 (하단) -->
+        <g id="capsule-bottom">
+            <rect x="130" y="190" width="140" height="100" rx="12" fill="url(#capsuleBody)"/>
+            <rect x="130" y="190" width="140" height="100" rx="12" fill="url(#capsuleGlow)"/>
+            <!-- 나사 -->
+            <circle cx="148" cy="208" r="6" fill="#546e7a" stroke="#455a64" stroke-width="1.5"/>
+            <line x1="145" y1="205" x2="151" y2="211" stroke="#37474f" stroke-width="1.5"/>
+            <line x1="151" y1="205" x2="145" y2="211" stroke="#37474f" stroke-width="1.5"/>
+            <circle cx="252" cy="208" r="6" fill="#546e7a" stroke="#455a64" stroke-width="1.5"/>
+            <line x1="249" y1="205" x2="255" y2="211" stroke="#37474f" stroke-width="1.5"/>
+            <line x1="255" y1="205" x2="249" y2="211" stroke="#37474f" stroke-width="1.5"/>
+            <circle cx="148" cy="272" r="6" fill="#546e7a" stroke="#455a64" stroke-width="1.5"/>
+            <line x1="145" y1="269" x2="151" y2="275" stroke="#37474f" stroke-width="1.5"/>
+            <line x1="151" y1="269" x2="145" y2="275" stroke="#37474f" stroke-width="1.5"/>
+            <circle cx="252" cy="272" r="6" fill="#546e7a" stroke="#455a64" stroke-width="1.5"/>
+            <line x1="249" y1="269" x2="255" y2="275" stroke="#37474f" stroke-width="1.5"/>
+            <line x1="255" y1="269" x2="249" y2="275" stroke="#37474f" stroke-width="1.5"/>
+            <!-- 연도 각인 -->
+            <text x="200" y="248" font-family="monospace" font-size="13" fill="#455a64" text-anchor="middle" letter-spacing="2">2050 → 2026</text>
+            <!-- 구분선 -->
+            <line x1="145" y1="220" x2="255" y2="220" stroke="#78909c" stroke-width="1.5" opacity="0.6"/>
+        </g>
+
+        <!-- 캡슐 뚜껑 (상단, 열리는 부분) -->
+        <g id="capsule-top">
+            <rect x="130" y="100" width="140" height="95" rx="12" fill="url(#capsuleTop)"/>
+            <rect x="130" y="100" width="140" height="95" rx="12" fill="url(#capsuleGlow)"/>
+            <!-- 뚜껑 잠금 표시 -->
+            <circle cx="200" cy="147" r="16" fill="#78909c" stroke="#607d8b" stroke-width="2"/>
+            <text id="lock-icon" x="200" y="153" font-family="sans-serif" font-size="14" fill="#eceff1" text-anchor="middle">🔒</text>
+            <!-- 뚜껑 테두리 강조 -->
+            <rect x="130" y="188" width="140" height="7" rx="3" fill="#90a4ae"/>
+        </g>
+
+        <!-- 내부 빛 (뚜껑 열릴 때) -->
+        <ellipse id="capsule-inner-light" cx="200" cy="190" rx="0" ry="0" fill="url(#innerGlow)" opacity="0"/>
+
+        <!-- 파티클들 (열릴 때 나오는 것들) -->
+        <g id="capsule-particles" opacity="0">
+            <circle cx="170" cy="160" r="3" fill="#ffe082"/>
+            <circle cx="230" cy="155" r="2" fill="#fff9c4"/>
+            <circle cx="190" cy="145" r="4" fill="#ffd54f"/>
+            <circle cx="215" cy="165" r="2.5" fill="#ffcc02"/>
+            <circle cx="160" cy="175" r="3" fill="#ffe082"/>
+            <circle cx="240" cy="170" r="2" fill="#fff9c4"/>
+            <circle cx="200" cy="140" r="3.5" fill="#ffd54f"/>
+        </g>
+
+        <!-- 캡슐 받침대 -->
+        <ellipse cx="200" cy="292" rx="75" ry="12" fill="#37474f" opacity="0.6"/>
+        <rect x="160" y="288" width="80" height="8" rx="4" fill="#455a64"/>
+
+        <!-- ANIMATE: 뚜껑 열림 -->
+        <animateTransform id="anim-lid" href="#capsule-top"
+            attributeName="transform" type="translate"
+            from="0,0" to="-20,-80"
+            begin="indefinite" dur="0.7s" fill="freeze"
+            calcMode="spline" keySplines="0.4 0 0.2 1"/>
+
+        <!-- ANIMATE: 내부 빛 확대 -->
+        <animate id="anim-light-rx" href="#capsule-inner-light"
+            attributeName="rx"
+            from="0" to="65"
+            begin="indefinite" dur="0.5s" fill="freeze"/>
+        <animate id="anim-light-ry" href="#capsule-inner-light"
+            attributeName="ry"
+            from="0" to="45"
+            begin="indefinite" dur="0.5s" fill="freeze"/>
+        <animate id="anim-light-op" href="#capsule-inner-light"
+            attributeName="opacity"
+            from="0" to="1"
+            begin="indefinite" dur="0.3s" fill="freeze"/>
+
+        <!-- ANIMATE: 파티클 등장 -->
+        <animate id="anim-particles" href="#capsule-particles"
+            attributeName="opacity"
+            from="0" to="1"
+            begin="indefinite" dur="0.4s" fill="freeze"/>
+    </svg>
+
+    <div id="capsule-msg">타임캡슐을 발견했습니다...</div>
+    <button id="capsule-continue" onclick="closeCapsuleScene()">에코 렌즈를 집어든다 →</button>
+    <button id="capsule-skip" onclick="skipCapsuleScene()">건너뛰기</button>
+</div>
+
+<!-- 에코 렌즈 스캔라인 -->
+<div id="ecolens-scanline"></div>
+
+<!-- 에코 렌즈 오버레이 -->
+<div id="ecolens-overlay">
+    <div id="ecolens-title">🔭 에코 렌즈 — 미래를 엿보다</div>
+    <div id="ecolens-glasses">
+        <!-- 안경 프레임 SVG -->
+        <svg class="glasses-frame" viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg">
+            <!-- 왼쪽 렌즈 테두리 -->
+            <ellipse cx="130" cy="90" rx="115" ry="78" fill="none" stroke="#5c6bc0" stroke-width="7" filter="url(#glow)"/>
+            <!-- 오른쪽 렌즈 테두리 -->
+            <ellipse cx="370" cy="90" rx="115" ry="78" fill="none" stroke="#5c6bc0" stroke-width="7" filter="url(#glow)"/>
+            <!-- 코걸이 -->
+            <path d="M245,82 Q250,68 255,82" fill="none" stroke="#7986cb" stroke-width="5" stroke-linecap="round"/>
+            <!-- 왼쪽 다리 -->
+            <path d="M15,60 Q5,58 2,90" fill="none" stroke="#5c6bc0" stroke-width="5" stroke-linecap="round"/>
+            <!-- 오른쪽 다리 -->
+            <path d="M485,60 Q495,58 498,90" fill="none" stroke="#5c6bc0" stroke-width="5" stroke-linecap="round"/>
+            <!-- 글로우 필터 -->
+            <defs>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+        </svg>
+        <!-- 렌즈 안쪽 이미지 영역 -->
+        <div id="ecolens-lenses">
+            <div class="lens-pane" id="lens-left">
+                <img id="lens-left-img" src="" alt="미래 A">
+                <div class="lens-choice-label" id="lens-left-label"></div>
+                <div class="lens-label" id="lens-left-text"></div>
+            </div>
+            <div class="lens-pane" id="lens-right">
+                <img id="lens-right-img" src="" alt="미래 B">
+                <div class="lens-choice-label" id="lens-right-label"></div>
+                <div class="lens-label" id="lens-right-text"></div>
+            </div>
+        </div>
+    </div>
+    <div id="ecolens-subtitle">👆 렌즈에 커서를 올리면 미래가 더 선명하게 보입니다</div>
+    <button id="ecolens-close">렌즈 닫기</button>
+</div>
+
+<!-- 미니게임 오버레이 -->
+<div id="minigame-overlay">
+    <div id="minigame-box"></div>
+</div>
+
+<script>
+
+    // ============================================================
+    // 🎵 사운드 엔진 (Web Audio API – 외부 파일 없이 코드로 생성)
+    // ============================================================
+    let audioCtx = null;
+    let soundEnabled = true;
+    let bgmGain = null;
+    let bgmNodes = [];   // 현재 재생 중인 BGM 노드 목록
+
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+    }
+
+    // 기본 음표 재생 헬퍼
+    function playTone(freq, type, startTime, duration, gainVal, ctx, dest) {
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(gainVal, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(dest || ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + duration + 0.01);
+        return osc;
+    }
+
+    // ── 효과음들 ──────────────────────────────────────────────────
+
+    // 버튼 클릭음 (경쾌한 틱)
+    function sfxClick() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        playTone(880,  'sine', t,      0.06, 0.3,  ctx);
+        playTone(1100, 'sine', t+0.04, 0.05, 0.2,  ctx);
+    }
+
+    // 좋은 선택 효과음 (밝은 상승 코드)
+    function sfxGoodChoice() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        const notes = [523, 659, 784, 1047]; // C5 E5 G5 C6
+        notes.forEach((f, i) => playTone(f, 'sine', t + i * 0.08, 0.25, 0.22, ctx));
+    }
+
+    // 나쁜 선택 효과음 (낮고 불안한 하강)
+    function sfxBadChoice() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        // 불협화음 + 하강
+        playTone(220, 'sawtooth', t,      0.3,  0.18, ctx);
+        playTone(233, 'sawtooth', t+0.05, 0.3,  0.15, ctx);  // 반음 위 → 불협
+        playTone(180, 'sawtooth', t+0.18, 0.35, 0.18, ctx);
+        playTone(150, 'sawtooth', t+0.36, 0.4,  0.15, ctx);
+    }
+
+    // 연도 전환 효과음 (긴장감 있는 타임점프)
+    function sfxYearTransition() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        // 짧은 상승 스윕
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, t);
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.5);
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.75);
+        // 뒤이어 고음 핑
+        playTone(1200, 'sine', t + 0.5, 0.4, 0.15, ctx);
+    }
+
+    // 임무 실패 효과음 (낮고 무거운 드럼)
+    function sfxGameOver() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        stopBGM();
+        // 낮은 둔탁한 타격
+        [0, 0.18, 0.38, 0.6].forEach(dt => {
+            const buf  = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.08));
+            }
+            const src  = ctx.createBufferSource();
+            const gain = ctx.createGain();
+            const filt = ctx.createBiquadFilter();
+            filt.type = 'lowpass';
+            filt.frequency.value = 120 - dt * 30;
+            src.buffer = buf;
+            gain.gain.setValueAtTime(0.5 - dt * 0.1, t + dt);
+            src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+            src.start(t + dt);
+        });
+        // 하강 음
+        const osc  = ctx.createOscillator();
+        const g    = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, t + 0.1);
+        osc.frequency.exponentialRampToValueAtTime(60, t + 1.5);
+        g.gain.setValueAtTime(0.2, t + 0.1);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 1.6);
+        osc.connect(g); g.connect(ctx.destination);
+        osc.start(t + 0.1); osc.stop(t + 1.7);
+    }
+
+    // 클리어 효과음 (밝은 팡파레)
+    function sfxClear() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        stopBGM();
+        const melody = [523,659,784,659,784,1047];
+        const times  = [0, 0.12, 0.24, 0.38, 0.46, 0.58];
+        melody.forEach((f, i) => playTone(f, 'sine', t + times[i], 0.3, 0.25, ctx));
+        // 하모니
+        const harmony = [330, 415, 523];
+        harmony.forEach(f => playTone(f, 'sine', t + 0.58, 0.6, 0.12, ctx));
+    }
+
+    // 미니게임 쓰레기 클릭 효과음 (물 튀기는 소리)
+    function sfxSplash() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        const buf  = ctx.createBuffer(1, ctx.sampleRate * 0.12, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.04));
+        }
+        const src  = ctx.createBufferSource();
+        const filt = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+        filt.type = 'bandpass';
+        filt.frequency.value = 1200;
+        filt.Q.value = 0.5;
+        gain.gain.setValueAtTime(0.35, t);
+        src.buffer = buf;
+        src.connect(filt); filt.connect(gain); gain.connect(ctx.destination);
+        src.start(t);
+    }
+
+    // 나무 심기 효과음 (작은 팝)
+    function sfxTreePlant() {
+        if (!soundEnabled) return;
+        const ctx = getAudioCtx();
+        const t = ctx.currentTime;
+        playTone(440 + Math.random()*200, 'sine', t,      0.12, 0.2,  ctx);
+        playTone(660 + Math.random()*100, 'sine', t+0.06, 0.08, 0.12, ctx);
+    }
+
+    // ── BGM ────────────────────────────────────────────────────────
+    // 오염도/자연 수치에 따라 BGM 분위기 변화
+    // 3가지 테마: 평화(초록), 긴장(중간), 위기(오염 높음)
+
+    function stopBGM() {
+        bgmNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+        bgmNodes = [];
+        if (bgmGain) { bgmGain.gain.setTargetAtTime(0, getAudioCtx().currentTime, 0.3); }
+    }
+
+    function playBGM() {
+        if (!soundEnabled) return;
+        stopBGM();
+        const ctx = getAudioCtx();
+        const p = gameState.pollution;
+        const n = gameState.nature;
+
+        // 공통 마스터 게인
+        bgmGain = ctx.createGain();
+        bgmGain.gain.setValueAtTime(0, ctx.currentTime);
+        bgmGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 2);
+        bgmGain.connect(ctx.destination);
+
+        if (p >= 70) {
+            startBGMDark(ctx, bgmGain);
+        } else if (p >= 40 || n < 30) {
+            startBGMTense(ctx, bgmGain);
+        } else {
+            startBGMPeace(ctx, bgmGain);
+        }
+    }
+
+    // 평화 BGM: 느리고 밝은 아르페지오
+    function startBGMPeace(ctx, dest) {
+        const notes  = [261, 329, 392, 523, 392, 329]; // C4 E4 G4 C5
+        const bpm    = 72;
+        const beat   = 60 / bpm;
+        let   noteIdx = 0;
+
+        function scheduleNote(when) {
+            const freq = notes[noteIdx % notes.length];
+            const osc  = ctx.createOscillator();
+            const g    = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.0, when);
+            g.gain.linearRampToValueAtTime(0.08, when + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, when + beat * 0.9);
+            osc.connect(g); g.connect(dest);
+            osc.start(when); osc.stop(when + beat);
+            bgmNodes.push(osc);
+            noteIdx++;
+        }
+
+        // 8마디 스케줄링 후 루프
+        const startT = ctx.currentTime + 0.1;
+        for (let i = 0; i < 48; i++) scheduleNote(startT + i * beat);
+
+        const loopId = setTimeout(() => { if (soundEnabled) startBGMPeace(ctx, dest); }, (48 * beat - 0.5) * 1000);
+        bgmNodes.push({ stop: () => clearTimeout(loopId) });
+    }
+
+    // 긴장 BGM: 낮고 반복적인 펄스
+    function startBGMTense(ctx, dest) {
+        const baseNotes = [196, 220, 196, 185, 196, 220, 233, 220];
+        const bpm    = 90;
+        const beat   = 60 / bpm;
+        let   idx    = 0;
+
+        function scheduleNote(when) {
+            const freq = baseNotes[idx % baseNotes.length];
+            const osc  = ctx.createOscillator();
+            const g    = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.0, when);
+            g.gain.linearRampToValueAtTime(0.07, when + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.001, when + beat * 0.7);
+            osc.connect(g); g.connect(dest);
+            osc.start(when); osc.stop(when + beat);
+            bgmNodes.push(osc);
+            idx++;
+        }
+
+        const startT = ctx.currentTime + 0.1;
+        for (let i = 0; i < 64; i++) scheduleNote(startT + i * beat * 0.5);
+
+        const loopId = setTimeout(() => { if (soundEnabled) startBGMTense(ctx, dest); }, (64 * beat * 0.5 - 0.5) * 1000);
+        bgmNodes.push({ stop: () => clearTimeout(loopId) });
+    }
+
+    // 위기 BGM: 불규칙하고 어두운 드론
+    function startBGMDark(ctx, dest) {
+        // 낮은 드론 + 불규칙 노이즈 펄스
+        const droneOsc = ctx.createOscillator();
+        const droneGain = ctx.createGain();
+        droneOsc.type = 'sawtooth';
+        droneOsc.frequency.setValueAtTime(55, ctx.currentTime);
+        droneOsc.frequency.setValueAtTime(58, ctx.currentTime + 2);
+        droneOsc.frequency.setValueAtTime(55, ctx.currentTime + 4);
+        droneGain.gain.setValueAtTime(0.06, ctx.currentTime);
+        droneOsc.connect(droneGain); droneGain.connect(dest);
+        droneOsc.start(); bgmNodes.push(droneOsc);
+
+        // 불규칙 고음 긁힘
+        const scratchOsc = ctx.createOscillator();
+        const scratchGain = ctx.createGain();
+        scratchOsc.type = 'sawtooth';
+        scratchOsc.frequency.setValueAtTime(330, ctx.currentTime + 1);
+        scratchOsc.frequency.setValueAtTime(310, ctx.currentTime + 3);
+        scratchGain.gain.setValueAtTime(0.03, ctx.currentTime + 1);
+        scratchOsc.connect(scratchGain); scratchGain.connect(dest);
+        scratchOsc.start(ctx.currentTime + 1); bgmNodes.push(scratchOsc);
+
+        const loopId = setTimeout(() => { if (soundEnabled) startBGMDark(ctx, dest); }, 8000);
+        bgmNodes.push({ stop: () => clearTimeout(loopId) });
+    }
+
+    // 사운드 토글
+    document.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('sound-toggle');
+        btn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) {
+                    } else {
+                stopBGM();
+            }
+        });
+    });
+
+    // 게임 상태 변수
+    let gameState = {
+        agentName: '',
+        year: 2026,
+        capital: 1000,
+        nature: 50,
+        population: 100,
+        pollution: 10,
+        choices: {},        // 연쇄 결과용: chainKey -> true
+        ecoLens: 3,         // 에코 렌즈 잔여 횟수
+    };
+
+    const scenarios = [
+        { // 1. 2026년 – 주택
+            title: "{name} 대원님, 주택 공급이 시급합니다!",
+            description: "그린 마을에 인구가 몰려 집이 턱없이 부족합니다.<br>두 건설사가 각자의 계획을 제안해왔어요.",
+            image: "videos/s1_construction.mp4", imageType: "video",
+            choices: [
+                {
+                    text: "🏗️ 대규모 아파트 단지 건설",
+                    hint: "💰 건설비 절감 · 👥 인구 +50 · 🌳 숲 감소 · 💨 오염 증가",
+                    chainKey: "deforest_2026",
+                    effects: { capital: -200, nature: -20, population: +50, pollution: +15 },
+                    resultVideo: "videos/r1a_apartment.mp4",
+                    resultTitle: "결과: 빠른 성장, 사라진 숲",
+                    resultText: "아파트 단지 덕에 많은 가족이 새 보금자리를 얻었습니다.<br>하지만 공사 중 숲이 대부분 사라졌고, 주민들 사이에서 <b>홍수 걱정</b>이 나오기 시작했어요."
+                },
+                {
+                    text: "🌿 친환경 저밀도 주택지구 조성",
+                    hint: "💰 건설비 더 높음 · 👥 인구 +25 · 🌳 자연 유지 · 💨 오염 소폭",
+                    chainKey: "eco_housing_2025",
+                    effects: { capital: -500, nature: +5, population: +25, pollution: +3 },
+                    resultVideo: "videos/r1b_eco_house.mp4",
+                    resultTitle: "결과: 느리지만 단단한 출발",
+                    resultText: "주택 수는 적지만 주민 만족도가 높고, 숲이 살아 있습니다.<br>단, 아직 집이 부족해 일부 가정은 다른 마을로 이사를 고려 중입니다."
+                }
+            ]
+        },
+        { // 2. 2027년 – 공장
+            title: "{name} 대원님, 일자리 위기입니다!",
+            description: "실업률이 오르고 있습니다. 두 기업이 마을에 투자 의향을 밝혔는데,<br>둘 다 장단점이 뚜렷합니다.",
+            image: "videos/s2_factory.mp4", imageType: "video",
+            choices: [
+                {
+                    text: "🏭 화학 공장 유치 (세금 수입 大)",
+                    hint: "💰 수입 +500 · 👥 인구 +30 · 💨 오염 급증 · 🌳 자연 감소",
+                    chainKey: "factory_2026",
+                    effects: { capital: +500, nature: -20, population: +30, pollution: +22 },
+                    resultVideo: "videos/r2a_chemical.mp4",
+                    resultTitle: "결과: 돈은 벌었지만…",
+                    resultText: "세금이 넘쳐납니다. 하지만 강 하류에서 물고기가 떼죽음 당했다는 신고가 들어왔습니다.<br><b>오염이 쌓이면 나중에 더 큰 대가를 치를 수 있어요.</b>"
+                },
+                {
+                    text: "☀️ 태양광 발전소 유치 (수입 적음)",
+                    hint: "💰 초기 손실 · 👥 인구 +15 · 🌳 자연 개선 · 💨 오염 거의 없음",
+                    chainKey: "solar_2026",
+                    effects: { capital: -150, nature: +15, population: +15, pollution: +1 },
+                    resultVideo: "videos/r2b_solar.mp4",
+                    resultTitle: "결과: 미래에 투자하다",
+                    resultText: "당장 수익은 적지만, 그린 마을의 브랜드 가치가 오르고 있습니다.<br>단, 재정이 빠듯해 다음 투자가 어려울 수 있어요."
+                }
+            ]
+        },
+        { // 3. 2028년 – 교통 (연쇄 분기: 2025에 숲 밀었으면 홍수 경보 추가)
+            title: "{name} 대원님, 교통난이 심각합니다!",
+            description: "출퇴근 시간 도로가 완전히 막힙니다. 주민 불만이 폭발 직전입니다.",
+            image: "videos/s3_traffic.mp4", imageType: "video",
+            chainWarning: { key: "deforest_2026", message: "⚠️ 2026년에 숲을 밀어냈기 때문에 집중호우 위험이 높아졌습니다. 도로 공사는 더 위험할 수 있어요!" },
+            choices: [
+                {
+                    text: "🚧 산을 깎아 8차선 도로 건설",
+                    hint: "💰 고비용 · 🌳 자연 감소 · 💨 오염 증가 · 교통 해결",
+                    chainKey: "road_2027",
+                    effects: { capital: -450, nature: -18, population: +5, pollution: +12 },
+                    resultVideo: "videos/r3a_highway.mp4",
+                    resultTitle: "결과: 쾌적한 도로, 위태로운 산",
+                    resultText: "교통은 확실히 뚫렸습니다. 하지만 산을 깎으며 토사 유출이 생겼고,<br>기상청이 올해 폭우 주의보를 내렸습니다."
+                },
+                {
+                    text: "🚌 전기버스 + 자전거 도로 확충",
+                    hint: "💰 중간 비용 · 🌳 자연 소폭 개선 · 💨 오염 감소 · 교통 부분 해결",
+                    chainKey: "transit_2027",
+                    effects: { capital: -280, nature: +8, population: +5, pollution: -6 },
+                    resultVideo: "videos/r3b_bicycle.mp4",
+                    resultTitle: "결과: 느리지만 지속 가능한 교통",
+                    resultText: "전기버스 이용자가 늘며 공기가 맑아졌습니다.<br>하지만 도로 자체가 좁아 출퇴근 혼잡은 여전히 남아 있어요."
+                }
+            ]
+        },
+        { // 4. 2029년 – 쓰레기 (연쇄: 공장 유치했으면 오염 가중)
+            title: "쓰레기 대란이 발생했습니다!",
+            description: "마을 곳곳에 쓰레기가 넘칩니다. {name} 대원님, 빠른 결단이 필요합니다!",
+            image: "videos/s4_trash.mp4", imageType: "video",
+            chainWarning: { key: "factory_2026", message: "⚠️ 2026년 화학 공장 덕에 산업 폐기물까지 섞여 쓰레기 문제가 훨씬 심각합니다. 처리 비용이 추가됩니다!" },
+            chainPenalty: { key: "factory_2026", effects: { pollution: +8, capital: -100 } },
+            choices: [
+                {
+                    text: "🗑️ 외곽 매립지 건설 (빠르고 저렴)",
+                    hint: "💰 비용 절감 · 🌳 자연 감소 · 💨 오염 증가 · 즉각 해결",
+                    chainKey: "landfill_2028",
+                    effects: { capital: -200, nature: -18, population: 0, pollution: +14 },
+                    resultVideo: "videos/r4a_landfill.mp4",
+                    resultTitle: "결과: 일단 치웠지만…",
+                    resultText: "쓰레기는 눈앞에서 사라졌습니다. 하지만 매립지 인근 지하수 오염 민원이 벌써부터 들어오고 있어요."
+                },
+                {
+                    text: "♻️ 재활용 센터 + 분리수거 캠페인",
+                    hint: "💰 초기 고비용 · 🌳 자연 개선 · 💨 오염 감소 · 장기적 효과",
+                    chainKey: "recycle_2028",
+                    effects: { capital: -480, nature: +12, population: 0, pollution: -10 },
+                    resultVideo: "videos/r4b_recycle.mp4",
+                    resultTitle: "결과: 쓰레기가 자원으로",
+                    resultText: "분리수거율이 크게 올라 쓰레기가 절반으로 줄었습니다.<br>하지만 캠페인 비용이 만만치 않아 이번 달 예산이 빠듯합니다."
+                }
+            ]
+        },
+        { // 5. 2030년 – 에너지 위기 (연쇄: 태양광 선택했으면 전력 일부 확보)
+            title: "{name} 대원님, 전력 대란 경보!",
+            description: "마을 전체에 정전이 반복됩니다. 공장도, 병원도 멈출 위기입니다.",
+            image: "videos/s5_powerline.mp4", imageType: "video",
+            chainWarning: { key: "solar_2026", message: "✅ 2026년에 세운 태양광 덕분에 전력 부족이 덜합니다. 추가 발전소 비용이 일부 줄어들어요." },
+            chainBonus: { key: "solar_2026", effects: { capital: +200, pollution: -3 } },
+            choices: [
+                {
+                    text: "🔥 화력 발전소 긴급 증설",
+                    hint: "💰 저렴 · ⚡ 즉시 해결 · 💨 오염 대폭 증가 · 🌳 자연 타격",
+                    chainKey: "coal_2029",
+                    effects: { capital: -350, nature: -25, population: 0, pollution: +28 },
+                    resultVideo: "videos/r5a_coal.mp4",
+                    resultTitle: "결과: 불은 켜졌지만 숨이 막힌다",
+                    resultText: "정전은 해결됐습니다. 하지만 미세먼지 농도가 치솟아 어린이·노인 건강 경보가 발령됐습니다.<br><b>오염 수치를 주의하세요!</b>"
+                },
+                {
+                    text: "💨 해상 풍력 발전소 건설",
+                    hint: "💰 고비용 · ⚡ 건설 시간 있음 · 💨 오염 거의 없음 · 🌳 미미한 영향",
+                    chainKey: "wind_2029",
+                    effects: { capital: -750, nature: -3, population: 0, pollution: +2 },
+                    resultVideo: "videos/r5b_wind.mp4",
+                    resultTitle: "결과: 바람으로 밝히는 마을",
+                    resultText: "공사 기간 동안 불편했지만 이제 바다 바람이 마을을 밝힙니다.<br>재정이 많이 쪼들렸지만 공기는 맑습니다."
+                }
+            ]
+        },
+        { // 6. 2031년 – 마지막 투자 (연쇄: 여러 선택 반영)
+            title: "마지막 임무! {name} 대원님의 유산을 결정하세요",
+            description: "2031년, 그린 마을의 마지막 중요한 투자를 결정할 때입니다.<br>당신이 걸어온 길이 이 선택의 무게를 결정합니다.",
+            image: "videos/s6_final.mp4", imageType: "video",
+            choices: [
+                {
+                    text: "🏬 초대형 쇼핑몰 유치",
+                    hint: "💰 수입 +500 · 👥 인구 +30 · 💨 오염 증가 · 🌳 자연 감소",
+                    chainKey: "mall_2030",
+                    effects: { capital: +500, nature: -15, population: +30, pollution: +12 },
+                    resultVideo: "videos/r6a_mall.mp4",
+                    resultTitle: "결과: 화려한 마무리",
+                    resultText: "쇼핑몰이 마을의 명소가 됐습니다. 하지만 차가 몰리고 쓰레기가 넘쳐납니다.<br>10년 후 그린 마을이 어떤 모습일지… 당신이 남긴 유산을 생각해보세요."
+                },
+                {
+                    text: "🔬 국립 생태 연구원 설립",
+                    hint: "💰 고비용 · 👥 인구 +20 · 🌳 자연 대폭 개선 · 💨 오염 감소",
+                    chainKey: "lab_2030",
+                    effects: { capital: -400, nature: +30, population: +20, pollution: -12 },
+                    resultVideo: "videos/r6b_lab.mp4",
+                    resultTitle: "결과: 미래를 위한 씨앗",
+                    resultText: "연구원이 세워진 날, 오랫동안 보이지 않던 철새 떼가 마을 상공을 날았습니다.<br>당신의 선택이 다음 세대에게 희망을 남겼습니다."
+                }
+            ]
+        }
+    ];
+
+    // 숫자를 부드럽게 카운팅하며 변화시키는 함수
+    function animateStatChange(elementId, fromVal, toVal) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        const statBox = el.closest('.stat');
+        const delta = toVal - fromVal;
+        if (delta === 0) return;
+
+        // 플로팅 델타 표시
+        if (statBox) {
+            const deltaEl = document.createElement('div');
+            deltaEl.className = 'stat-delta';
+            const sign = delta > 0 ? '+' : '';
+            // 오염은 증가가 나쁨, 나머지는 증가가 좋음
+            const isBad = (elementId === 'pollution') ? delta > 0 : delta < 0;
+            deltaEl.style.color = isBad ? '#e53935' : '#2e7d32';
+            deltaEl.textContent = sign + delta;
+            statBox.appendChild(deltaEl);
+            setTimeout(() => deltaEl.remove(), 1500);
+
+            // 배경 플래시
+            statBox.classList.remove('flash-up', 'flash-down');
+            void statBox.offsetWidth; // reflow
+            statBox.classList.add(isBad ? 'flash-down' : 'flash-up');
+            setTimeout(() => statBox.classList.remove('flash-up', 'flash-down'), 600);
+        }
+
+        // 숫자 카운팅 애니메이션
+        const duration = 600;
+        const steps = 20;
+        const stepTime = duration / steps;
+        let current = fromVal;
+        let step = 0;
+        const interval = setInterval(() => {
+            step++;
+            current = Math.round(fromVal + (delta * step / steps));
+            el.textContent = current;
+            if (step >= steps) {
+                clearInterval(interval);
+                el.textContent = toVal;
+            }
+        }, stepTime);
+    }
+
+    // 이전 값을 기억했다가 변화 시 애니메이션 적용
+    let prevState = { capital: 0, nature: 0, population: 0, pollution: 0 };
+
+    function updateUI(animate = false) {
+        document.getElementById('year').textContent = gameState.year + '년';
+        if (animate) {
+            animateStatChange('capital',    prevState.capital,    gameState.capital);
+            animateStatChange('nature',     prevState.nature,     gameState.nature);
+            animateStatChange('population', prevState.population, gameState.population);
+            animateStatChange('pollution',  prevState.pollution,  gameState.pollution);
+        } else {
+            document.getElementById('capital').textContent    = gameState.capital;
+            document.getElementById('nature').textContent     = gameState.nature;
+            document.getElementById('population').textContent = gameState.population;
+            document.getElementById('pollution').textContent  = gameState.pollution;
+        }
+        prevState = { ...gameState };
+        updateDynamicBackground();
+        updateStatWarnings();
+    }
+
+    // ── 스탯 경고 레벨 업데이트 ──────────────────────────────────
+    function updateStatWarnings() {
+        const p = gameState.pollution;
+        const n = gameState.nature;
+        const pop = gameState.population;
+        const cap = gameState.capital;
+
+        // 오염 경고
+        const pollStat = document.getElementById('stat-pollution');
+        if (pollStat) {
+            pollStat.classList.remove('warn-caution','warn-danger','warn-good');
+            // 기존 아이콘 제거
+            pollStat.querySelectorAll('.stat-warn-icon').forEach(el => el.remove());
+            if (p >= 80) {
+                pollStat.classList.add('warn-danger');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '🚨';
+                pollStat.appendChild(icon);
+            } else if (p >= 60) {
+                pollStat.classList.add('warn-caution');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '⚠️';
+                pollStat.appendChild(icon);
+            } else if (p <= 15) {
+                pollStat.classList.add('warn-good');
+            }
+        }
+
+        // 자연 경고
+        const natStat = document.getElementById('stat-nature');
+        if (natStat) {
+            natStat.classList.remove('warn-caution','warn-danger','warn-good');
+            natStat.querySelectorAll('.stat-warn-icon').forEach(el => el.remove());
+            if (n <= 10) {
+                natStat.classList.add('warn-danger');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '💀';
+                natStat.appendChild(icon);
+            } else if (n <= 25) {
+                natStat.classList.add('warn-caution');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '🥀';
+                natStat.appendChild(icon);
+            } else if (n >= 70) {
+                natStat.classList.add('warn-good');
+            }
+        }
+
+        // 자금 경고
+        const capStat = document.getElementById('stat-capital');
+        if (capStat) {
+            capStat.classList.remove('warn-caution','warn-danger','warn-good');
+            capStat.querySelectorAll('.stat-warn-icon').forEach(el => el.remove());
+            if (cap < 100) {
+                capStat.classList.add('warn-danger');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '💸';
+                capStat.appendChild(icon);
+            } else if (cap < 300) {
+                capStat.classList.add('warn-caution');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '📉';
+                capStat.appendChild(icon);
+            }
+        }
+
+        // 인구 압박 게이지 업데이트
+        const bar = document.getElementById('pop-pressure-bar');
+        if (bar) {
+            // 인구 100 기준, 최대 300까지 게이지
+            const pressurePct = Math.min((pop / 300) * 100, 100);
+            bar.style.width = pressurePct + '%';
+            // 색상: 인구 적음=초록, 많음=주황→빨강
+            if (pop >= 250) bar.style.backgroundColor = '#f44336';
+            else if (pop >= 180) bar.style.backgroundColor = '#ff9800';
+            else if (pop >= 130) bar.style.backgroundColor = '#ffc107';
+            else bar.style.backgroundColor = '#4caf50';
+        }
+
+        // 인구 stat 자체 경고
+        const popStat = document.getElementById('stat-population');
+        if (popStat) {
+            popStat.classList.remove('warn-caution','warn-danger');
+            popStat.querySelectorAll('.stat-warn-icon').forEach(el => el.remove());
+            if (pop >= 250) {
+                popStat.classList.add('warn-danger');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '😱';
+                popStat.appendChild(icon);
+            } else if (pop >= 180) {
+                popStat.classList.add('warn-caution');
+                const icon = document.createElement('span');
+                icon.className = 'stat-warn-icon';
+                icon.textContent = '👥';
+                popStat.appendChild(icon);
+            }
+        }
+    }
+
+
+    // ── 동적 배경색: 자연/오염 수치에 따라 body 배경 변화 ──
+    function updateDynamicBackground() {
+        const n = gameState.nature;
+        const p = gameState.pollution;
+        let bg;
+        if (p >= 70) {
+            // 오염 심각: 어두운 회갈색
+            bg = `rgb(${100+Math.floor(p*0.5)}, ${90-Math.floor(p*0.2)}, ${70-Math.floor(p*0.2)})`;
+        } else if (p >= 40) {
+            // 오염 중간: 회색빛
+            const t = (p - 40) / 30;
+            bg = `rgb(${Math.round(200 + t*30)}, ${Math.round(200 - t*40)}, ${Math.round(180 - t*50)})`;
+        } else if (n >= 60) {
+            // 자연 높음: 싱그러운 초록
+            const t = Math.min((n - 60) / 40, 1);
+            bg = `rgb(${Math.round(180 - t*30)}, ${Math.round(230 + t*15)}, ${Math.round(180 - t*20)})`;
+        } else {
+            // 기본: 연한 초록
+            bg = '#e8f5e9';
+        }
+        document.body.style.backgroundColor = bg;
+    }
+
+    // ── 선택 피드백 플래시 ──
+    function triggerFeedbackFlash(isGood) {
+        const el = document.getElementById('feedback-flash');
+        el.className = '';
+        void el.offsetWidth; // reflow
+        el.className = isGood ? 'good' : 'bad';
+        setTimeout(() => { el.className = ''; }, 800);
+    }
+
+    // 선택이 전반적으로 좋은지 판단 (자연+오염 합산)
+    function isGoodChoice(effects) {
+        const score = (effects.nature || 0) - (effects.pollution || 0) * 0.8;
+        return score >= 0;
+    }
+
+    function updateMedia(type, src) {
+        const mediaContainer = document.getElementById('media-container');
+        mediaContainer.style.opacity = 0;
+        let mediaElement = '';
+        if (type === 'image') {
+            mediaElement = `<img src="${src}" alt="게임 미디어">`;
+        } else if (type === 'video') {
+            mediaElement = `<video autoplay muted loop src="${src}">브라우저가 비디오 태그를 지원하지 않습니다.</video>`;
+        }
+        setTimeout(() => {
+            mediaContainer.innerHTML = mediaElement;
+            mediaContainer.style.opacity = 1;
+        }, 300);
+    }
+
+
+    // ── 연도 전환 오버레이 ──
+    function showYearTransition(newYear, callback) {
+        const overlay = document.getElementById('year-transition-overlay');
+        const textEl  = document.getElementById('year-transition-text');
+        const subEl   = document.getElementById('year-transition-sub');
+
+        // 배경색 테마
+        const pollution = gameState.pollution;
+        if (pollution >= 70)      overlay.style.background = 'linear-gradient(135deg,#4a148c,#880e4f)';
+        else if (pollution >= 40) overlay.style.background = 'linear-gradient(135deg,#37474f,#546e7a)';
+        else if (gameState.nature >= 60) overlay.style.background = 'linear-gradient(135deg,#1b5e20,#2e7d32)';
+        else                      overlay.style.background = 'linear-gradient(135deg,#1a237e,#283593)';
+
+        textEl.textContent = newYear + '년';
+        subEl.textContent  = newYear <= 2030 ? `그린 마을 임무 계속...` : `마지막 해가 시작됩니다`;
+        sfxYearTransition();
+        overlay.classList.add('active');
+
+        // 게임 컨텐츠 페이드
+        document.getElementById('game-content').classList.add('fading');
+
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            document.getElementById('game-content').classList.remove('fading');
+            callback();
+        }, 1600);
+    }
+
+    function renderScenario(yearIndex) {
+        const scenario = scenarios[yearIndex];
+        document.getElementById('scenario-title').textContent = scenario.title.replace(/{name}/g, gameState.agentName);
+        document.getElementById('scenario-description').innerHTML = scenario.description.replace(/{name}/g, gameState.agentName);
+        updateMedia(scenario.imageType === 'video' ? 'video' : 'image', scenario.image);
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+
+        // 연쇄 경고 배너
+        if (scenario.chainWarning && gameState.choices[scenario.chainWarning.key]) {
+            const banner = document.createElement('div');
+            banner.className = 'chain-banner';
+            banner.innerHTML = scenario.chainWarning.message;
+            choicesDiv.appendChild(banner);
+        }
+
+        scenario.choices.forEach(choice => {
+            const button = document.createElement('button');
+            button.classList.add('choice-btn');
+            button.innerHTML = choice.text +
+                (choice.hint ? `<span class="choice-hint">${choice.hint}</span>` : '');
+            button.onclick = () => { sfxClick(); handleChoice(choice); };
+            choicesDiv.appendChild(button);
+        });
+
+        // 에코 렌즈 버튼 표시 (선택지가 있는 시나리오에서만)
+        showEcoLensBtn(scenario);
+    }
+    
+    function showResult(choice) {
+        hideEcoLensBtn();
+        if (choice.resultTitle) {
+            document.getElementById('scenario-title').textContent = choice.resultTitle;
+            document.getElementById('scenario-description').innerHTML = choice.resultText; 
+            
+            if (choice.resultVideo) {
+                updateMedia('video', choice.resultVideo);
+            } else {
+                updateMedia('image', choice.resultImage);
+            }
+        }
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+        const nextButton = document.createElement('button');
+        nextButton.textContent = "다음 해로 넘어가기";
+        nextButton.classList.add('next-year');
+        nextButton.onclick = () => { sfxClick(); showYearlySummary(); };
+        choicesDiv.appendChild(nextButton);
+    }
+    
+    function proceedToNextYear() {
+        prevState = { capital: gameState.capital, nature: gameState.nature,
+                      population: gameState.population, pollution: gameState.pollution };
+
+        // 기본 연간 변화
+        gameState.capital   += gameState.population * 2;
+        gameState.pollution  = Math.max(0, gameState.pollution - 2);
+        gameState.nature     = Math.max(0, gameState.nature);
+
+        // ── 연쇄 패널티/보너스 ──────────────────────────────────
+        // 2028 진입 시: 2026 공장 유치했으면 폐기물 추가 오염
+        if (gameState.year === 2027 && gameState.choices['factory_2026']) {
+            gameState.pollution += 8;
+            gameState.capital   -= 100;
+        }
+        // 2029 진입 시: 2026 태양광 선택했으면 전력 일부 확보 → 비용 절감
+        if (gameState.year === 2028 && gameState.choices['solar_2026']) {
+            gameState.capital   += 200;
+            gameState.pollution -= 3;
+        }
+        // 2027 도로공사 + 2025 숲제거 → 홍수 피해
+        if (gameState.year === 2027 && gameState.choices['road_2027'] && gameState.choices['deforest_2026']) {
+            gameState.capital   -= 250;
+            gameState.nature    -= 10;
+            gameState.pollution += 5;
+        }
+
+        // ── 인구 압박: 인구 수준에 따른 자동 오염/자원 소모 ──────
+        const pop = gameState.population;
+        const yearIdx = gameState.year - 2026;
+
+        // 인구 구간별 연간 오염 자동 발생 (도시화 효과)
+        let popPollution = 0;
+        if (pop >= 250)      popPollution = 8 + yearIdx * 2;   // 과밀: 매우 심각
+        else if (pop >= 180) popPollution = 4 + yearIdx;        // 많음: 중간
+        else if (pop >= 130) popPollution = 2;                  // 보통
+        else                 popPollution = 0;                  // 적음: 영향 없음
+        gameState.pollution += popPollution;
+
+        // 인구 많으면 자연도 소모 (토지 사용)
+        if (pop >= 200) gameState.nature = Math.max(0, gameState.nature - Math.floor((pop - 200) / 50));
+
+        // 인구 적으면 세수 감소 (빈 마을 효과)
+        if (pop < 80) gameState.capital -= 50;
+
+        gameState.year++;
+        updateUI(true);
+
+        if (gameState.pollution >= 100) {
+            sfxGameOver();
+            showEndGameModal('임무 실패...', `${gameState.agentName} 대원님, 그린 마을은 오염도가 100을 넘어 사람이 살 수 없는 곳이 되었습니다...<br>최종 자연 점수: ${gameState.nature}`);
+            return;
+        }
+        if (gameState.capital < 0) {
+            sfxGameOver();
+            showEndGameModal('임무 실패!', `${gameState.agentName} 대원님, 자금이 부족하여 그린 마을 관리가 불가능해졌습니다...<br>최종 자연 점수: ${gameState.nature}`);
+            return;
+        }
+        if (gameState.year > 2031) {
+            sfxClear();
+            showEndGame();
+            return;
+        }
+
+        // 연도 전환 애니메이션 후 시나리오 렌더링
+        const yr = gameState.year;
+        if (yr === 2028) {
+            showYearTransition(yr, () => {
+                showMissionAlert(
+                    'river',
+                    () => showMinigameRiver(() => renderScenario(yr - 2026)),  // 수락
+                    () => renderScenario(yr - 2026)                           // 건너뛰기
+                );
+            });
+        } else if (yr === 2030) {
+            showYearTransition(yr, () => {
+                showMissionAlert(
+                    'forest',
+                    () => showMinigameForest(() => renderScenario(yr - 2026)), // 수락
+                    () => renderScenario(yr - 2026)                            // 건너뛰기
+                );
+            });
+        } else {
+            showYearTransition(yr, () => renderScenario(yr - 2026));
+        }
+    }
+
+    function handleChoice(choice) {
+        // chainKey 기억
+        if (choice.chainKey) gameState.choices[choice.chainKey] = true;
+
+        const effects = choice.effects;
+        // 변화 전 값 스냅샷 (애니메이션 기준점)
+        prevState = { capital: gameState.capital, nature: gameState.nature,
+                      population: gameState.population, pollution: gameState.pollution };
+        gameState.capital    += effects.capital    || 0;
+        gameState.nature     += effects.nature     || 0;
+        gameState.population += effects.population || 0;
+        gameState.pollution  += effects.pollution  || 0;
+        updateUI(true);
+
+        // 선택 직후 즉시 패배 체크
+        if (gameState.capital < 0) {
+            showResult(choice);
+            setTimeout(() => {
+                sfxGameOver();
+                showEndGameModal('임무 실패!', `${gameState.agentName} 대원님, 자금이 바닥났습니다! 그린 마을 관리가 불가능해졌습니다...<br>최종 자연 점수: ${gameState.nature}`);
+            }, 400);
+            return;
+        }
+        if (gameState.pollution >= 100) {
+            showResult(choice);
+            setTimeout(() => {
+                sfxGameOver();
+                showEndGameModal('임무 실패...', `${gameState.agentName} 대원님, 오염도가 100을 넘었습니다! 그린 마을은 사람이 살 수 없는 곳이 되었습니다...<br>최종 자연 점수: ${gameState.nature}`);
+            }, 400);
+            return;
+        }
+
+        // 선택 피드백 플래시 + 효과음
+        const good = isGoodChoice(effects);
+        triggerFeedbackFlash(good);
+        if (good) sfxGoodChoice(); else sfxBadChoice();
+        // BGM 분위기 업데이트 (선택 후 수치 변했으니)
+        showResult(choice);
+    }
+
+    function showModal(title, text, buttons) {
+        document.getElementById('modal-title').innerHTML = title;
+        document.getElementById('modal-text').innerHTML = text;
+        const modalButtonsDiv = document.getElementById('modal-buttons');
+        modalButtonsDiv.innerHTML = '';
+        buttons.forEach(buttonInfo => {
+            const button = document.createElement('button');
+            button.textContent = buttonInfo.text;
+            button.onclick = buttonInfo.onclick;
+            if (buttonInfo.className) {
+                button.className = buttonInfo.className;
+            }
+            modalButtonsDiv.appendChild(button);
+        });
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function hideModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    function showYearlySummary() {
+        const title = `${gameState.year}년 임무 결산`;
+
+        // 연쇄 이벤트 메모 생성
+        let chainMemo = '';
+        const nextYear = gameState.year + 1;
+        if (nextYear === 2028 && gameState.choices['factory_2026']) {
+            chainMemo = '<div style="background:#fff3e0;border-left:4px solid #ff9800;padding:8px 12px;border-radius:8px;margin-top:10px;font-size:0.95rem;color:#e65100;">⚠️ 화학 공장 여파로 다음 해 쓰레기 문제가 더 심각해질 수 있습니다.</div>';
+        }
+        if (nextYear === 2029 && gameState.choices['solar_2026']) {
+            chainMemo = '<div style="background:#e8f5e9;border-left:4px solid #4caf50;padding:8px 12px;border-radius:8px;margin-top:10px;font-size:0.95rem;color:#2e7d32;">✅ 태양광 발전소 덕에 에너지 위기 대응이 조금 수월해질 거예요.</div>';
+        }
+        if (gameState.choices['deforest_2026'] && gameState.choices['road_2027'] && nextYear === 2028) {
+            chainMemo += '<div style="background:#fce4ec;border-left:4px solid #e91e63;padding:8px 12px;border-radius:8px;margin-top:6px;font-size:0.95rem;color:#c2185b;">🌧️ 숲 제거 + 도로공사 여파로 홍수 피해가 발생했습니다!</div>';
+        }
+
+        // 오염 경고
+        let pollutionWarning = '';
+        if (gameState.pollution >= 80) {
+            pollutionWarning = '<div style="background:#ffebee;border-left:4px solid #f44336;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:0.95rem;color:#c62828;">🚨 오염도 위험! 100이 되면 즉시 임무 실패입니다!</div>';
+        } else if (gameState.pollution >= 60) {
+            pollutionWarning = '<div style="background:#fff8e1;border-left:4px solid #ffc107;padding:8px 12px;border-radius:8px;margin-top:8px;font-size:0.95rem;color:#f57f17;">⚠️ 오염도가 높아지고 있어요. 이대로면 위험합니다!</div>';
+        }
+
+        // 인구 압박 경고
+        let populationWarning = '';
+        const pop = gameState.population;
+        if (pop >= 250) {
+            populationWarning = '<div style="background:#fce4ec;border-left:4px solid #e91e63;padding:8px 12px;border-radius:8px;margin-top:6px;font-size:0.95rem;color:#880e4f;">😱 인구 과밀! 매년 오염이 자동으로 크게 늘고 있습니다!</div>';
+        } else if (pop >= 180) {
+            populationWarning = '<div style="background:#fff3e0;border-left:4px solid #ff9800;padding:8px 12px;border-radius:8px;margin-top:6px;font-size:0.95rem;color:#e65100;">👥 인구가 많아 매년 오염이 자동 누적됩니다. 환경 투자가 필요해요.</div>';
+        } else if (pop < 80) {
+            populationWarning = '<div style="background:#e3f2fd;border-left:4px solid #1976d2;padding:8px 12px;border-radius:8px;margin-top:6px;font-size:0.95rem;color:#0d47a1;">📉 인구가 적어 세수가 줄고 있습니다. 인구 유입이 필요해요.</div>';
+        }
+
+        const text = `
+            <div style="text-align: left; display: inline-block; font-size: 1.3rem; line-height: 2;">
+                💰 돈: ${gameState.capital}<br>
+                🌳 자연: ${gameState.nature}<br>
+                👨‍👩‍👧‍👦 인구: ${gameState.population}<br>
+                💨 오염: ${gameState.pollution}
+            </div>
+            ${pollutionWarning}${populationWarning}${chainMemo}
+        `;
+        const buttons = [{
+            text: '다음 임무 시작',
+            className: 'next-year-button',
+            onclick: () => {
+                hideModal();
+                proceedToNextYear();
+            }
+        }];
+        showModal(title, text, buttons);
+    }
+
+    function showEndGameModal(title, text) {
+        const buttons = [{
+            text: '다시 시작하기',
+            className: 'restart-button',
+            onclick: () => location.reload()
+        }];
+        showModal(title, text, buttons);
+    }
+
+
+
+
+    // ============================================================
+    // 🕰️ 타임캡슐 오프닝 씬
+    // ============================================================
+
+    function showCapsuleScene(onComplete) {
+        const scene = document.getElementById('capsule-scene');
+        scene.classList.add('active');
+        scene._onComplete = onComplete;
+
+        // 별 배경 생성
+        for (let i = 0; i < 60; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 3 + 1;
+            star.style.cssText = `
+                width:${size}px; height:${size}px;
+                left:${Math.random()*100}%;
+                top:${Math.random()*100}%;
+                --d:${(Math.random()*2+1.5).toFixed(1)}s;
+                --delay:-${(Math.random()*3).toFixed(1)}s;
+            `;
+            scene.appendChild(star);
+        }
+
+        // 씬 시퀀스
+        const msg = document.getElementById('capsule-msg');
+
+        // Step 1: 메시지 등장
+        setTimeout(() => {
+            msg.textContent = '타임캡슐을 발견했습니다...';
+            msg.classList.add('visible');
+        }, 400);
+
+        // Step 2: 잠금 해제 메시지
+        setTimeout(() => {
+            msg.classList.remove('visible');
+        }, 1600);
+        setTimeout(() => {
+            msg.textContent = '🔓 잠금이 해제됩니다...';
+            msg.classList.add('visible');
+            // 자물쇠 → 열린 자물쇠
+            const lockIcon = document.getElementById('lock-icon');
+            if (lockIcon) lockIcon.textContent = '🔓';
+        }, 2000);
+
+        // Step 3: 뚜껑 열림 애니메이션
+        setTimeout(() => {
+            msg.classList.remove('visible');
+            // SVG 애니메이션 시작
+            ['anim-lid', 'anim-light-rx', 'anim-light-ry', 'anim-light-op', 'anim-particles'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.beginElement();
+            });
+
+            // 빛 폭발
+            setTimeout(() => {
+                const burst = document.getElementById('capsule-burst');
+                burst.classList.add('burst');
+                setTimeout(() => burst.classList.remove('burst'), 900);
+            }, 500);
+        }, 2800);
+
+        // Step 4: 에코 렌즈 등장
+        setTimeout(() => {
+            // 캡슐 SVG 숨기고 렌즈 보이기
+            const capsuleSvg = document.getElementById('capsule-svg');
+            capsuleSvg.style.transition = 'opacity 0.5s';
+            capsuleSvg.style.opacity = '0';
+
+            const lensReveal = document.getElementById('capsule-lens-reveal');
+            lensReveal.classList.add('reveal');
+
+            msg.classList.remove('visible');
+            setTimeout(() => {
+                msg.textContent = '✨ 에코 렌즈 — 미래를 볼 수 있는 렌즈입니다';
+                msg.classList.add('visible');
+            }, 600);
+        }, 3800);
+
+        // Step 5: 계속하기 버튼 등장
+        setTimeout(() => {
+            document.getElementById('capsule-continue').style.display = 'block';
+        }, 5000);
+    }
+
+    function closeCapsuleScene() {
+        const scene = document.getElementById('capsule-scene');
+        const cb = scene._onComplete;
+        // 씬 페이드아웃
+        scene.style.transition = 'opacity 0.5s';
+        scene.style.opacity = '0';
+        setTimeout(() => {
+            scene.classList.remove('active');
+            scene.style.opacity = '';
+            scene.style.transition = '';
+            // 별 제거
+            scene.querySelectorAll('.star').forEach(s => s.remove());
+            // 상태 초기화
+            document.getElementById('capsule-svg').style.opacity = '';
+            document.getElementById('capsule-lens-reveal').classList.remove('reveal');
+            document.getElementById('capsule-continue').style.display = 'none';
+            document.getElementById('capsule-msg').classList.remove('visible');
+            document.getElementById('lock-icon').textContent = '🔒';
+            if (cb) cb();
+        }, 500);
+    }
+
+    function skipCapsuleScene() {
+        const scene = document.getElementById('capsule-scene');
+        const cb = scene._onComplete;
+        scene.classList.remove('active');
+        scene.querySelectorAll('.star').forEach(s => s.remove());
+        document.getElementById('capsule-continue').style.display = 'none';
+        document.getElementById('capsule-msg').classList.remove('visible');
+        document.getElementById('lock-icon').textContent = '🔒';
+        if (cb) cb();
+    }
+
+
+
+    // ============================================================
+    // 🌟 떠오르는 인트로 멘트
+    // ============================================================
+    const INTRO_LINES = [
+        { text: "2026년, 지구는 기로에 서 있다.",      size: "2rem",   color: "#ffffff" },
+        { text: "무분별한 개발이 자연을 위협하고...",   size: "1.5rem", color: "#b0bec5" },
+        { text: "2050년, 생존자 캠프에서 신호가 왔다.", size: "1.6rem", color: "#ef9a9a" },
+        { text: "❝제발... 과거를 바꿔줘.❞",              size: "1.8rem", color: "#ff8a65" },
+        { text: "미래에서 온 타임캡슐이 나타났다.",     size: "1.6rem", color: "#ffe082" },
+        { text: "당신의 선택이 지구의 운명을 바꾼다.",  size: "2rem",   color: "#a5d6a7", bold: true },
+    ];
+
+    let _introFloatCb = null;
+    let _introTimers  = [];
+
+    function showIntroFloat(onComplete) {
+        const overlay = document.getElementById('intro-float-overlay');
+        _introFloatCb = onComplete;
+        overlay.classList.add('active');
+
+        // 별 생성
+        for (let i = 0; i < 70; i++) {
+            const s = document.createElement('div');
+            s.className = 'float-star';
+            const sz = Math.random() * 2.5 + 0.8;
+            s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${(Math.random()*2+1.5).toFixed(1)}s;--delay:-${(Math.random()*3).toFixed(1)}s;`;
+            overlay.appendChild(s);
+        }
+
+        // 중앙 Y 기준
+        const centerY = window.innerHeight / 2;
+
+        INTRO_LINES.forEach((line, i) => {
+            // 등장
+            const showT = setTimeout(() => {
+                const el = document.createElement('div');
+                el.className = 'float-line';
+                el.id = `float-line-${i}`;
+                el.textContent = line.text;
+                el.style.fontSize   = line.size;
+                el.style.color      = line.color;
+                el.style.fontWeight = line.bold ? 'bold' : 'normal';
+                el.style.top        = (centerY - 20) + 'px';
+                el.style.textShadow = `0 0 20px ${line.color}88`;
+                overlay.appendChild(el);
+                void el.offsetWidth;
+                el.classList.add('show');
+            }, i * 1800);
+            _introTimers.push(showT);
+
+            // 다음 줄 뜨기 전 사라짐 (마지막 줄 제외)
+            if (i < INTRO_LINES.length - 1) {
+                const hideT = setTimeout(() => {
+                    const el = document.getElementById(`float-line-${i}`);
+                    if (el) { el.classList.remove('show'); el.classList.add('hide'); }
+                    setTimeout(() => { if (el) el.remove(); }, 700);
+                }, i * 1800 + 1300);
+                _introTimers.push(hideT);
+            }
+        });
+
+        // 마지막 줄 후 완료
+        const totalTime = INTRO_LINES.length * 1800 + 1200;
+        const doneT = setTimeout(() => finishIntroFloat(), totalTime);
+        _introTimers.push(doneT);
+    }
+
+    function finishIntroFloat() {
+        const overlay = document.getElementById('intro-float-overlay');
+        overlay.style.transition = 'opacity 0.8s';
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.classList.remove('active');
+            overlay.style.opacity = '';
+            overlay.style.transition = '';
+            overlay.querySelectorAll('.float-star, .float-line').forEach(e => e.remove());
+            if (_introFloatCb) _introFloatCb();
+            _introFloatCb = null;
+        }, 800);
+    }
+
+    function skipIntroFloat() {
+        _introTimers.forEach(t => clearTimeout(t));
+        _introTimers = [];
+        finishIntroFloat();
+    }
+
+    // ============================================================
+    // 🚨 긴급 미션 알림
+    // ============================================================
+    const MISSION_INFO = {
+        river: {
+            subtitle: "2028년 — 그린 마을 하천 오염 경보",
+            desc: "🌊 마을을 흐르는 강이 오염됐습니다!<br>쓰레기를 건져내 강을 되살려주세요.<br><br>⏱ 제한시간 25초 · 🗑️ 많이 건질수록 오염 감소"
+        },
+        forest: {
+            subtitle: "2030년 — 그린 마을 황폐지 복원 작전",
+            desc: "🌳 개발로 황폐해진 땅에 나무를 심어야 합니다!<br>제한 시간 안에 최대한 많은 나무를 심어주세요.<br><br>⏱ 제한시간 20초 · 🌱 많이 심을수록 자연 회복"
+        }
+    };
+
+    function showMissionAlert(type, onAccept, onSkip) {
+        const info = MISSION_INFO[type];
+        const overlay  = document.getElementById('mission-alert-overlay');
+        const subtitle = document.getElementById('mission-alert-subtitle');
+        const desc     = document.getElementById('mission-alert-desc');
+        const btnAccept = document.getElementById('mission-btn-accept');
+        const btnSkip   = document.getElementById('mission-btn-skip');
+
+        subtitle.textContent = info.subtitle;
+        desc.innerHTML       = info.desc;
+
+        // 이전 이벤트 제거
+        const newAccept = btnAccept.cloneNode(true);
+        const newSkip   = btnSkip.cloneNode(true);
+        btnAccept.parentNode.replaceChild(newAccept, btnAccept);
+        btnSkip.parentNode.replaceChild(newSkip, btnSkip);
+
+        newAccept.onclick = () => {
+            sfxClick();
+            overlay.classList.remove('active');
+            onAccept();
+        };
+        newSkip.onclick = () => {
+            sfxClick();
+            overlay.classList.remove('active');
+            onSkip();
+        };
+
+        overlay.classList.add('active');
+    }
+
+    // ============================================================
+    // 🔭 에코 렌즈 시스템
+    // ============================================================
+
+    let currentScenarioForLens = null;
+
+    function updateEcoLensBtn() {
+        const btn   = document.getElementById('eco-lens-btn');
+        const badge = document.getElementById('eco-lens-badge');
+        if (!btn) return;
+        badge.textContent = gameState.ecoLens;
+        btn.disabled = gameState.ecoLens <= 0;
+    }
+
+    function showEcoLensBtn(scenario) {
+        currentScenarioForLens = scenario;
+        const btn = document.getElementById('eco-lens-btn');
+        if (btn) {
+            btn.style.display = 'inline-block';
+            updateEcoLensBtn();
+        }
+    }
+
+    function hideEcoLensBtn() {
+        const btn = document.getElementById('eco-lens-btn');
+        if (btn) btn.style.display = 'none';
+    }
+
+    function setLensMedia(paneId, choice) {
+        const pane = document.getElementById(paneId);
+        // 기존 미디어 제거 후 재생성
+        const existingImg   = document.getElementById(paneId + '-img');
+        const existingVideo = pane.querySelector('video.lens-video');
+        if (existingVideo) existingVideo.remove();
+        if (existingImg)   existingImg.src = '';
+
+        if (choice.resultVideo) {
+            // video 태그 사용
+            let vid = pane.querySelector('video.lens-video');
+            if (!vid) {
+                vid = document.createElement('video');
+                vid.className = 'lens-video';
+                vid.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;';
+                vid.muted = true;
+                vid.autoplay = true;
+                vid.loop = true;
+                vid.playsInline = true;
+                // img 태그 앞에 삽입
+                if (existingImg) pane.insertBefore(vid, existingImg);
+                else pane.appendChild(vid);
+            }
+            vid.style.animation = 'lensReveal 1.2s ease-out forwards';
+            vid.src = choice.resultVideo;
+            vid.load();
+            // img는 숨김
+            if (existingImg) existingImg.style.display = 'none';
+        } else {
+            // img 태그 사용
+            if (existingImg) {
+                existingImg.style.display = '';
+                existingImg.src = choice.resultImage || '';
+            }
+        }
+    }
+
+    function activateEcoLens() {
+        if (gameState.ecoLens <= 0 || !currentScenarioForLens) return;
+        gameState.ecoLens--;
+        updateEcoLensBtn();
+        if (gameState.ecoLens <= 0) hideEcoLensBtn();
+
+        // 스캔라인 효과
+        const scanline = document.getElementById('ecolens-scanline');
+        scanline.style.display = 'block';
+        setTimeout(() => { scanline.style.display = 'none'; }, 650);
+
+        const choices = currentScenarioForLens.choices;
+        const c0 = choices[0];
+        const c1 = choices[1];
+
+        const stripEmoji = s => s.replace(/\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu, '').trim();
+
+        // 왼쪽 렌즈 (resultVideo면 video 요소로 교체, 아니면 img)
+        setLensMedia('lens-left', c0);
+        document.getElementById('lens-left-label').textContent  = stripEmoji(c0.text).substring(0, 20);
+        document.getElementById('lens-left-text').textContent   = c0.resultTitle ? c0.resultTitle.replace('결과: ', '') : '';
+
+        // 오른쪽 렌즈
+        setLensMedia('lens-right', c1);
+        document.getElementById('lens-right-label').textContent = stripEmoji(c1.text).substring(0, 20);
+        document.getElementById('lens-right-text').textContent  = c1.resultTitle ? c1.resultTitle.replace('결과: ', '') : '';
+
+        // 라벨은 별도로 세팅 (setLensMedia 이후)
+        document.getElementById('lens-left-label').textContent  = stripEmoji(c0.text).substring(0, 20);
+        document.getElementById('lens-left-text').textContent   = c0.resultTitle ? c0.resultTitle.replace('결과: ', '') : '';
+        document.getElementById('lens-right-label').textContent = stripEmoji(c1.text).substring(0, 20);
+        document.getElementById('lens-right-text').textContent  = c1.resultTitle ? c1.resultTitle.replace('결과: ', '') : '';
+
+        // 0.4초 후 오버레이 열기 (video src 로드 시작 대기)
+        setTimeout(() => {
+            document.getElementById('ecolens-overlay').classList.add('active');
+        }, 400);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const closeBtn = document.getElementById('ecolens-close');
+        const lensBtn  = document.getElementById('eco-lens-btn');
+        const overlay  = document.getElementById('ecolens-overlay');
+
+        if (closeBtn) closeBtn.addEventListener('click', () => overlay.classList.remove('active'));
+        if (lensBtn)  lensBtn.addEventListener('click', () => { sfxClick(); activateEcoLens(); });
+        if (overlay)  overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('active');
+        });
+    });
+
+    // =============================================
+    // 🌊 미니게임 1: 오염된 강 정화 게임
+    // =============================================
+    function showMinigameRiver(onComplete) {
+        const overlay = document.getElementById('minigame-overlay');
+        const box = document.getElementById('minigame-box');
+        overlay.style.display = 'flex';
+
+        const GAME_TIME = 25;  // 초
+        const TRASH_EMOJIS = ['🗑️','🥤','🧴','🛢️','🧪','🪣','💊','🔩','🧲'];
+        let score = 0;
+        let timeLeft = GAME_TIME;
+        let timerInterval = null;
+        let spawnInterval = null;
+        let trashCount = 0;
+        let gameOver = false;
+
+        box.innerHTML = `
+            <h2>🌊 오염된 강 정화 작전!</h2>
+            <p>강에 떠내려오는 쓰레기를 빠르게 클릭해서 치워주세요!</p>
+            <div class="mg-timer-bar-wrap"><div class="mg-timer-bar" id="mg-tbar" style="width:100%"></div></div>
+            <div class="mg-score-row">
+                <span>⏱ <span id="mg-time">${GAME_TIME}</span>초</span>
+                <span>🗑️ 제거: <span id="mg-score">0</span>개</span>
+            </div>
+            <div id="river-canvas-wrap"></div>
+            <p style="font-size:0.9rem;color:#90a4ae;">💡 쓰레기를 탭/클릭하면 사라져요!</p>
+        `;
+
+        const river = document.getElementById('river-canvas-wrap');
+
+        function spawnTrash() {
+            if (gameOver) return;
+            const el = document.createElement('div');
+            el.className = 'trash-item';
+            el.textContent = TRASH_EMOJIS[Math.floor(Math.random() * TRASH_EMOJIS.length)];
+            const maxX = river.clientWidth - 44;
+            const maxY = river.clientHeight - 44;
+            el.style.left = Math.random() * maxX + 'px';
+            el.style.top  = Math.random() * maxY + 'px';
+            el.onclick = () => {
+                if (gameOver) return;
+                const splash = document.createElement('div');
+                splash.className = 'splash';
+                splash.textContent = '💧';
+                splash.style.left = el.style.left;
+                splash.style.top  = el.style.top;
+                river.appendChild(splash);
+                sfxSplash();
+                setTimeout(() => splash.remove(), 500);
+                el.remove();
+                score++;
+                document.getElementById('mg-score').textContent = score;
+            };
+            river.appendChild(el);
+            trashCount++;
+            // 최대 12개 유지
+            if (trashCount > 12) {
+                const items = river.querySelectorAll('.trash-item');
+                if (items.length > 12) items[0].remove();
+            }
+        }
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('mg-time').textContent = timeLeft;
+            const pct = (timeLeft / GAME_TIME) * 100;
+            const tbar = document.getElementById('mg-tbar');
+            if (tbar) {
+                tbar.style.width = pct + '%';
+                tbar.style.background = pct > 40
+                    ? 'linear-gradient(90deg,#4caf50,#8bc34a)'
+                    : 'linear-gradient(90deg,#ff5722,#ff9800)';
+            }
+            if (timeLeft <= 0) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                clearInterval(spawnInterval);
+                showRiverResult();
+            }
+        }, 1000);
+
+        spawnInterval = setInterval(spawnTrash, 900);
+        spawnTrash(); spawnTrash(); spawnTrash();
+
+        function showRiverResult() {
+            let pollBonus = 0, naturBonus = 0, msg = '';
+            if (score >= 18) {
+                pollBonus = -15; naturBonus = 10;
+                msg = '🏆 완벽한 정화! 강이 깨끗해졌어요!';
+            } else if (score >= 10) {
+                pollBonus = -8; naturBonus = 5;
+                msg = '👍 수고했어요! 강이 많이 맑아졌어요.';
+            } else if (score >= 4) {
+                pollBonus = -3; naturBonus = 2;
+                msg = '🌿 조금 힘들었지만, 그래도 도움이 됐어요!';
+            } else {
+                pollBonus = 0; naturBonus = 0;
+                msg = '😥 쓰레기가 너무 많이 남았어요... 다음엔 더 빠르게!';
+            }
+
+            prevState = { capital: gameState.capital, nature: gameState.nature, population: gameState.population, pollution: gameState.pollution };
+            gameState.pollution = Math.max(0, gameState.pollution + pollBonus);
+            gameState.nature   += naturBonus;
+            updateUI(true);
+
+            box.innerHTML = `
+                <h2>🌊 강 정화 결과!</h2>
+                <div class="mg-result-box">
+                    ${msg}<br><br>
+                    🗑️ 제거한 쓰레기: <b>${score}개</b><br>
+                    💨 오염 변화: <b style="color:${pollBonus<0?'#4caf50':'#e53935'}">${pollBonus <= 0 ? pollBonus : '+'+pollBonus}</b><br>
+                    🌳 자연 변화: <b style="color:#4caf50">+${naturBonus}</b>
+                </div>
+                <button class="mg-btn" id="mg-continue-btn">다음 임무로 →</button>
+            `;
+            document.getElementById('mg-continue-btn').onclick = () => {
+                overlay.style.display = 'none';
+                onComplete();
+            };
+        }
+    }
+
+    // =============================================
+    // 🌳 미니게임 2: 나무 심기 클리커
+    // =============================================
+    function showMinigameForest(onComplete) {
+        const overlay = document.getElementById('minigame-overlay');
+        const box = document.getElementById('minigame-box');
+        overlay.style.display = 'flex';
+
+        const GAME_TIME = 20;
+        const COLS = 8, ROWS = 4;
+        const TOTAL = COLS * ROWS;
+        const TREE_EMOJIS = ['🌲','🌳','🌴','🌵','🎋','🎄'];
+        let planted = 0;
+        let timeLeft = GAME_TIME;
+        let timerInterval = null;
+        let gameOver = false;
+        const cellState = new Array(TOTAL).fill(false);
+
+        box.innerHTML = `
+            <h2>🌳 나무 심기 대작전!</h2>
+            <p>황폐해진 땅에 나무를 심어주세요! 빈 땅을 클릭하세요.</p>
+            <div class="mg-timer-bar-wrap"><div class="mg-timer-bar" id="mg-tbar2" style="width:100%"></div></div>
+            <div class="mg-score-row">
+                <span>⏱ <span id="mg-time2">${GAME_TIME}</span>초</span>
+                <span>🌱 심은 나무: <span id="mg-planted">0</span>/${TOTAL}</span>
+            </div>
+            <div id="forest-grid"></div>
+            <p style="font-size:0.9rem;color:#90a4ae;">💡 빈 땅(갈색 칸)을 탭/클릭하면 나무가 자라요!</p>
+        `;
+
+        const grid = document.getElementById('forest-grid');
+        const cells = [];
+        for (let i = 0; i < TOTAL; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'forest-cell';
+            cell.dataset.idx = i;
+            cell.onclick = () => plantTree(i, cell);
+            grid.appendChild(cell);
+            cells.push(cell);
+        }
+
+        function plantTree(idx, cell) {
+            if (gameOver || cellState[idx]) return;
+            cellState[idx] = true;
+            planted++;
+            const emoji = TREE_EMOJIS[Math.floor(Math.random() * TREE_EMOJIS.length)];
+            cell.textContent = emoji;
+            cell.classList.add('planted', 'tree-grow');
+            sfxTreePlant();
+            cell.removeEventListener('click', cell.onclick);
+            document.getElementById('mg-planted').textContent = planted;
+            if (planted === TOTAL) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                setTimeout(showForestResult, 400);
+            }
+        }
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            const el = document.getElementById('mg-time2');
+            const tbar = document.getElementById('mg-tbar2');
+            if (el) el.textContent = timeLeft;
+            if (tbar) {
+                const pct = (timeLeft / GAME_TIME) * 100;
+                tbar.style.width = pct + '%';
+                tbar.style.background = pct > 40
+                    ? 'linear-gradient(90deg,#4caf50,#8bc34a)'
+                    : 'linear-gradient(90deg,#ff5722,#ff9800)';
+            }
+            if (timeLeft <= 0 && !gameOver) {
+                gameOver = true;
+                clearInterval(timerInterval);
+                showForestResult();
+            }
+        }, 1000);
+
+        function showForestResult() {
+            const ratio = planted / TOTAL;
+            let naturBonus = 0, capitalBonus = 0, msg = '';
+            if (ratio >= 0.9) {
+                naturBonus = 20; capitalBonus = -100;
+                msg = '🏆 숲이 완성됐어요! 동물들이 돌아오기 시작했습니다!';
+            } else if (ratio >= 0.6) {
+                naturBonus = 12; capitalBonus = -50;
+                msg = '👍 멋진 숲이 생겼어요! 그린 마을이 더 푸르러졌어요.';
+            } else if (ratio >= 0.3) {
+                naturBonus = 6; capitalBonus = 0;
+                msg = '🌿 작은 숲의 시작! 계속 가꿔나가 봐요.';
+            } else {
+                naturBonus = 2; capitalBonus = 0;
+                msg = '😢 나무가 많이 부족해요. 더 빠르게 심어야 했는데!';
+            }
+
+            prevState = { capital: gameState.capital, nature: gameState.nature, population: gameState.population, pollution: gameState.pollution };
+            gameState.nature  += naturBonus;
+            gameState.capital += capitalBonus;
+            updateUI(true);
+
+            box.innerHTML = `
+                <h2>🌳 나무 심기 결과!</h2>
+                <div class="mg-result-box">
+                    ${msg}<br><br>
+                    🌱 심은 나무: <b>${planted}/${TOTAL}그루</b><br>
+                    🌳 자연 변화: <b style="color:#4caf50">+${naturBonus}</b><br>
+                    💰 비용: <b style="color:${capitalBonus<0?'#e53935':'#4caf50'}">${capitalBonus <= 0 ? capitalBonus : '+'+capitalBonus}</b>
+                </div>
+                <button class="mg-btn" id="mg-continue-btn2">다음 임무로 →</button>
+            `;
+            document.getElementById('mg-continue-btn2').onclick = () => {
+                overlay.style.display = 'none';
+                onComplete();
+            };
+        }
+    }
+
+    function showEndGame() {
+        let grade, gradeMsg, gradeColor;
+        if (gameState.nature >= 80) {
+            grade = '🌍 지구 영웅';
+            gradeMsg = '그린 마을은 지구에서 가장 아름다운 생태 도시가 되었습니다. 당신의 현명한 선택이 미래를 바꿨습니다!';
+            gradeColor = '#2e7d32';
+        } else if (gameState.nature >= 50) {
+            grade = '🌳 환경 수호자';
+            gradeMsg = '그린 마을은 자연과 개발의 균형을 잘 유지했습니다. 앞으로도 지속 가능한 선택을 이어가세요!';
+            gradeColor = '#388e3c';
+        } else if (gameState.nature >= 25) {
+            grade = '🌱 변화의 씨앗';
+            gradeMsg = '그린 마을은 성장했지만 자연이 많이 훼손되었습니다. 다음엔 더 친환경적인 선택을 해보세요!';
+            gradeColor = '#f9a825';
+        } else {
+            grade = '🏭 개발 우선주의자';
+            gradeMsg = '그린 마을은 경제적으로 성장했지만, 자연은 거의 사라졌습니다. 다시 도전해 지구를 구해주세요!';
+            gradeColor = '#e53935';
+        }
+
+        const title = `🎉 임무 완료! 2031년 결과`;
+        const text = `
+            <div style="font-size:2rem; color:${gradeColor}; margin-bottom:10px;">${grade}</div>
+            <div style="font-size:1.1rem; color:#555; line-height:1.8; margin-bottom:15px;">${gradeMsg}</div>
+            <div style="text-align: left; display: inline-block; font-size: 1.2rem; line-height: 2; background:#f1f8e9; padding:10px 20px; border-radius:12px;">
+                💰 최종 자금: ${gameState.capital}<br>
+                🌳 최종 자연: ${gameState.nature}<br>
+                👨‍👩‍👧‍👦 최종 인구: ${gameState.population}<br>
+                💨 최종 오염: ${gameState.pollution}
+            </div>
+        `;
+        const buttons = [{
+            text: '다시 도전하기',
+            className: 'restart-button',
+            onclick: () => location.reload()
+        }];
+        showModal(title, text, buttons);
+    }
+
+    function startGame() {
+        let nameInput = document.getElementById('agent-name').value;
+        gameState.agentName = nameInput.trim() === '' ? '대원' : nameInput;
+        
+        document.getElementById('stats-bar').style.display = 'flex';
+        updateUI();
+        updateDynamicBackground();
+        showYearTransition(gameState.year, () => renderScenario(0));
+    }
+    
+    function showNameInputScreen() {
+        document.getElementById('scenario-title').textContent = "당신의 코드네임을 알려주세요!";
+        document.getElementById('scenario-description').innerHTML = "UNI 🤖: 미래를 바꿀 이름, 그린 마을은 당신의 활약을 기억할 것입니다.";
+        updateMedia('video', "videos/intro_codename.mp4");
+
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'agent-name';
+        input.placeholder = '여기에 코드네임을 입력하세요...';
+        // 엔터 키로도 시작 가능
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { getAudioCtx(); startGame(); }
+        });
+
+        const startButton = document.createElement('button');
+        startButton.textContent = "이 이름으로 임무 시작!";
+        startButton.onclick = () => { getAudioCtx(); startGame(); };
+
+        choicesDiv.appendChild(input);
+        choicesDiv.appendChild(startButton);
+
+        // 자동 포커스
+        setTimeout(() => input.focus(), 100);
+    }
+
+    function showUniGuide() {
+        document.getElementById('scenario-title').textContent = "AI 가이드 'UNI' 🤖 활성화";
+        document.getElementById('scenario-description').innerHTML = `반갑습니다!<br>저는 이번 임무를 함께할 AI 가이드 'UNI' 🤖입니다.<br>지금부터 당신은 '그린 마을'의 관리자가 되어<br>미래를 바꾸는 중대한 임무를 시작합니다.<br>먼저 임무에 사용할 코드네임을 등록해 주세요.`;
+        updateMedia('video', "videos/intro_uni.mp4");
+        
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+        const registerButton = document.createElement('button');
+        registerButton.textContent = "코드네임 등록하기";
+        registerButton.onclick = () => { getAudioCtx(); showNameInputScreen(); };
+        choicesDiv.appendChild(registerButton);
+    }
+
+    function activateARGlasses() {
+        document.getElementById('scenario-title').textContent = "<<긴급 메시지 수신>>";
+        document.getElementById('scenario-description').innerHTML = `여기는 2050년, 생존자 캠프다.<br>과거의 무분별한 개발로 지구 생태계는 회복 불능 상태에 빠졌다.<br>제발... 과거를 바꿔줘. 당신의 선택이 우리의 유일한 희망이다!`;
+        updateMedia('video', "videos/intro_earth_crisis.mp4");
+        
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+        const acceptButton = document.createElement('button');
+        acceptButton.textContent = "임무를 수락한다";
+        acceptButton.onclick = () => { getAudioCtx(); showUniGuide(); };
+        choicesDiv.appendChild(acceptButton);
+    }
+
+    function openTimeCapsule() {
+        document.getElementById('scenario-title').textContent = "에코 렌즈를 발견했다!";
+        document.getElementById('scenario-description').innerHTML =
+            `캡슐 안에는 미래 기술로 만들어진<br>` +
+            `<b>에코 렌즈(Eco Lens)</b>가 들어있었다.<br><br>` +
+            `<span style="font-size:0.95rem;color:#5c6bc0;">🔭 미래의 결과를 미리 엿볼 수 있는 특수 렌즈.<br>총 3회 사용 가능합니다.</span>`;
+        updateMedia('video', "videos/intro_ar_glasses.mp4");
+
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+        const wearButton = document.createElement('button');
+        wearButton.textContent = "🔭 에코 렌즈를 착용한다";
+        wearButton.onclick = () => { getAudioCtx(); activateARGlasses(); };
+        choicesDiv.appendChild(wearButton);
+    }
+
+    window.onload = () => {
+        // 시작 전 game-content 숨기기
+        document.getElementById('game-content').style.display = 'none';
+        document.getElementById('stats-bar').style.display = 'none';
+
+        // 인트로 화면 구성
+        document.getElementById('scenario-title').textContent = "";
+        document.getElementById('scenario-description').innerHTML = "";
+
+        const header = document.getElementById('header');
+        header.innerHTML = `🌍 작전명: 그린 플래닛`;
+
+        // 인트로 설명 영역 표시
+        document.getElementById('game-content').style.display = 'block';
+        document.getElementById('scenario-title').textContent = "2026년, 지구 어딘가에서...";
+        document.getElementById('scenario-description').innerHTML =
+            `평화로운 어느 날, 당신 앞에<br>2050년 미래에서 온 <b>타임캡슐</b>이 나타났다!<br><br>` +
+            `<span style="font-size:1rem; color:#555;">🌱 지구를 지킬 선택은 당신의 손에 달려 있습니다.<br>누구든 참여할 수 있습니다!</span>`;
+        document.getElementById('media-container').innerHTML =
+            `<video autoplay muted loop playsinline src="videos/intro_timecapsule.mp4"></video>`;
+
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = '';
+        const initialStartButton = document.createElement('button');
+        initialStartButton.textContent = "🕰️ 타임캡슐 열어보기";
+        initialStartButton.onclick = () => {
+            getAudioCtx();
+            showIntroFloat(() => showCapsuleScene(() => openTimeCapsule()));
+        };
+        choicesDiv.appendChild(initialStartButton);
+    };
+</script>
+
+</body>
+</html>
+
+
